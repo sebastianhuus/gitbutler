@@ -145,6 +145,7 @@ export type GlobalUiState = {
 	channel: string | undefined;
 	draftBranchName: string | undefined;
 	modal: GlobalModalState | undefined;
+	commandPaletteOpen: boolean;
 };
 
 export const UI_STATE = new InjectionToken<UiState>("UiState");
@@ -199,6 +200,7 @@ export class UiState {
 		channel: undefined,
 		draftBranchName: undefined,
 		modal: undefined,
+		commandPaletteOpen: false,
 	});
 
 	constructor(

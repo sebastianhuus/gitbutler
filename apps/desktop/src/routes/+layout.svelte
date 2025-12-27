@@ -6,6 +6,8 @@
 	import { afterNavigate, beforeNavigate } from "$app/navigation";
 	import { page } from "$app/state";
 	import AppUpdater from "$components/AppUpdater.svelte";
+	import CommandPalette from "$components/CommandPalette.svelte";
+	import CommandPaletteMenuAction from "$components/CommandPaletteMenuAction.svelte";
 	import FocusCursor from "$components/FocusCursor.svelte";
 	import GlobalModal from "$components/GlobalModal.svelte";
 	import GlobalSettingsMenuAction from "$components/GlobalSettingsMenuAction.svelte";
@@ -205,6 +207,8 @@
 <ReloadMenuAction />
 <SwitchThemeMenuAction />
 <ToggleSidebarMenuAction />
+<CommandPaletteMenuAction />
+<CommandPalette />
 <GlobalModal />
 <FocusCursor />
 

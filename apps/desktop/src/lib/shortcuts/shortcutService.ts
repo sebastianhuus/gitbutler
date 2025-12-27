@@ -30,4 +30,10 @@ export class ShortcutService {
 			);
 		};
 	}
+
+	trigger(shortcut: string) {
+		for (const [id, callback] of this.listeners) {
+			if (id === shortcut) callback();
+		}
+	}
 }

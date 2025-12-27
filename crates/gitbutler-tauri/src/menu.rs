@@ -142,6 +142,9 @@ pub fn build<R: Runtime>(
         &MenuItemBuilder::with_id("view/toggle-sidebar", "Toggle Unassigned")
             .accelerator("CmdOrCtrl+\\")
             .build(handle)?,
+        &MenuItemBuilder::with_id("view/command-palette", "Command Palette")
+            .accelerator("CmdOrCtrl+K")
+            .build(handle)?,
         &PredefinedMenuItem::separator(handle)?,
         &MenuItemBuilder::with_id("view/zoom-in", "Zoom In")
             .accelerator("CmdOrCtrl+=")
@@ -301,6 +304,11 @@ pub fn handle_event(webview: &WebviewWindow, event: &MenuEvent) {
 
     if event.id() == "view/toggle-sidebar" {
         emit(webview, SHORTCUT_EVENT, "toggle-sidebar");
+        return;
+    }
+
+    if event.id() == "view/command-palette" {
+        emit(webview, SHORTCUT_EVENT, "command-palette");
         return;
     }
 

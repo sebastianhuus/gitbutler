@@ -2,25 +2,38 @@ import { chipToasts } from '@gitbutler/ui';
 import type { Command, CommandAction } from '$lib/commandPalette/types';
 
 /**
- * Helper to get the currently selected commit from either workspace view (lane selection)
- * or branches view (branchesSelection). Returns commitId and stackId if a commit is selected.
+ * Helper to get the currently selected commit from the appropriate view.
+ * Workspace view uses workspaceSelection, branches view uses branchesSelection.
+ * Returns commitId and stackId if a commit is selected.
  */
 function getSelectedCommit(ctx: CommandAction): {
 	commitId: string;
 	stackId: string;
 } | null {
-	const { projectId, uiState } = ctx;
+	const { projectId, uiState, page } = ctx;
 	if (!projectId) return null;
 
-	// Read from the global branchesSelection which is now updated by both
-	// workspace view and branches view when commits are clicked
-	const branchSelection = uiState.project(projectId).branchesSelection.current;
+	const projectState = uiState.project(projectId);
 
-	if (branchSelection.commitId && branchSelection.stackId) {
-		return {
-			commitId: branchSelection.commitId,
-			stackId: branchSelection.stackId
-		};
+	// Read from the appropriate selection based on current route
+	if (page.route.id === '/[projectId]/workspace') {
+		// In workspace view: use workspace-specific selection
+		const selection = projectState.workspaceSelection.current;
+		if (selection.commitId && selection.stackId) {
+			return {
+				commitId: selection.commitId,
+				stackId: selection.stackId
+			};
+		}
+	} else if (page.route.id === '/[projectId]/branches') {
+		// In branches view: use branches-specific selection
+		const selection = projectState.branchesSelection.current;
+		if (selection.commitId && selection.stackId) {
+			return {
+				commitId: selection.commitId,
+				stackId: selection.stackId
+			};
+		}
 	}
 
 	return null;
@@ -33,15 +46,19 @@ export const COMMANDS: Command[] = [
 		keywords: ['project', 'switch', 'change'],
 		action: async ({ backend }) => {
 			// Fetch projects from backend
-			const projects = await backend.invoke('list_projects');
+			const projects = (await backend.invoke('list_projects')) as Array<{
+				id: string;
+				title: string;
+				path: string;
+			}>;
 
 			// Return submenu items
-			return projects.map((project: any) => ({
+			return projects.map((project) => ({
 				id: project.id,
 				title: project.title,
 				description: project.path,
 				keywords: [project.title, project.path],
-				action: ({ goto }: any) => {
+				action: ({ goto }) => {
 					goto(`/${project.id}`);
 				}
 			}));
@@ -71,7 +88,9 @@ export const COMMANDS: Command[] = [
 
 			// Check if there are upstream commits before opening the modal
 			try {
-				const baseBranch = await backend.invoke('get_base_branch_data', { projectId });
+				const baseBranch = (await backend.invoke('get_base_branch_data', { projectId })) as
+					| { behind?: number }
+					| undefined;
 				const upstreamCommits = baseBranch?.behind ?? 0;
 
 				if (upstreamCommits === 0) {
@@ -103,11 +122,11 @@ export const COMMANDS: Command[] = [
 				return;
 			}
 
-			// Get the currently selected commit
+			// Get the currently selected commit from workspace selection
 			const selection = getSelectedCommit(ctx);
 
 			if (!selection) {
-				chipToasts.warning('Please select a commit first');
+				chipToasts.warning('Please select a commit in the workspace first');
 				return;
 			}
 
@@ -141,11 +160,11 @@ export const COMMANDS: Command[] = [
 				return;
 			}
 
-			// Get the currently selected commit
+			// Get the currently selected commit from workspace selection
 			const selection = getSelectedCommit(ctx);
 
 			if (!selection) {
-				chipToasts.warning('Please select a commit first');
+				chipToasts.warning('Please select a commit in the workspace first');
 				return;
 			}
 

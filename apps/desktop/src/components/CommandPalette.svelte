@@ -77,7 +77,7 @@
 		const result = command.action({ backend, shortcutService, goto, projectId, uiState, page });
 
 		// Handle void return: close palette (backward compatible)
-		if (result === undefined) {
+		if (result === undefined || result === null) {
 			close();
 			return;
 		}
@@ -87,8 +87,9 @@
 			isLoadingSubmenu = true;
 			try {
 				const items = await result;
-				if (items.length === 0) {
-					close(); // No items, just close
+				// Check if promise resolved to undefined, null, or empty array
+				if (!items || !Array.isArray(items) || items.length === 0) {
+					close();
 					return;
 				}
 				showSubmenu(command, items);
@@ -100,7 +101,8 @@
 			}
 		} else {
 			// Handle sync submenu: show immediately
-			if (result.length === 0) {
+			// Verify result is an array before accessing length
+			if (!Array.isArray(result) || result.length === 0) {
 				close();
 				return;
 			}

@@ -24,6 +24,7 @@ const MOCK_STACK_UI_STATE: StackState = {
 
 const MOCK_PROJECT_UI_STATE: ProjectUiState = {
 	exclusiveAction: undefined,
+	workspaceSelection: {},
 	branchesToPoll: [],
 	selectedClaudeSession: undefined,
 	thinkingLevel: "normal",

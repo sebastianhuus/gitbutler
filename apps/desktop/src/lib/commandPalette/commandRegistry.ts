@@ -113,7 +113,7 @@ export const COMMANDS: Command[] = [
 		title: 'Insert Empty Commit Above',
 		keywords: ['insert', 'empty', 'commit', 'above', 'blank'],
 		action: async (ctx) => {
-			const { backend, projectId, page } = ctx;
+			const { backend, projectId, page, uiState } = ctx;
 			if (!projectId) return;
 
 			// Check if we're in the workspace view
@@ -131,14 +131,31 @@ export const COMMANDS: Command[] = [
 			}
 
 			const { commitId, stackId } = selection;
+			const branchName = uiState.project(projectId).workspaceSelection.current.branchName;
 
 			try {
-				await backend.invoke('insert_blank_commit', {
+				// Use the new commit_insert_blank API
+				const newCommitId = await backend.invoke<string>('commit_insert_blank', {
 					projectId,
-					stackId,
-					commitId,
-					offset: -1 // -1 = above
+					relativeTo: { type: 'commit', subject: commitId },
+					side: 'above'
 				});
+
+				// Select the newly created commit in both global and lane selection
+				uiState.project(projectId).workspaceSelection.set({
+					commitId: newCommitId,
+					stackId,
+					branchName
+				});
+
+				// Also update lane selection to open the detail panel
+				uiState.lane(stackId).selection.set({
+					branchName,
+					commitId: newCommitId,
+					upstream: false,
+					previewOpen: true
+				});
+
 				chipToasts.success('Empty commit inserted above');
 			} catch (error) {
 				console.error('Failed to insert empty commit:', error);
@@ -151,7 +168,7 @@ export const COMMANDS: Command[] = [
 		title: 'Insert Empty Commit Below',
 		keywords: ['insert', 'empty', 'commit', 'below', 'blank'],
 		action: async (ctx) => {
-			const { backend, projectId, page } = ctx;
+			const { backend, projectId, page, uiState } = ctx;
 			if (!projectId) return;
 
 			// Check if we're in the workspace view
@@ -169,14 +186,31 @@ export const COMMANDS: Command[] = [
 			}
 
 			const { commitId, stackId } = selection;
+			const branchName = uiState.project(projectId).workspaceSelection.current.branchName;
 
 			try {
-				await backend.invoke('insert_blank_commit', {
+				// Use the new commit_insert_blank API
+				const newCommitId = await backend.invoke<string>('commit_insert_blank', {
 					projectId,
-					stackId,
-					commitId,
-					offset: 1 // 1 = below
+					relativeTo: { type: 'commit', subject: commitId },
+					side: 'below'
 				});
+
+				// Select the newly created commit in both global and lane selection
+				uiState.project(projectId).workspaceSelection.set({
+					commitId: newCommitId,
+					stackId,
+					branchName
+				});
+
+				// Also update lane selection to open the detail panel
+				uiState.lane(stackId).selection.set({
+					branchName,
+					commitId: newCommitId,
+					upstream: false,
+					previewOpen: true
+				});
+
 				chipToasts.success('Empty commit inserted below');
 			} catch (error) {
 				console.error('Failed to insert empty commit:', error);

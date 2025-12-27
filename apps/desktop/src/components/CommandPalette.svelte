@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { inject } from '@gitbutler/core/context';
+	import { page } from '$app/state';
 	import { BACKEND } from '$lib/backend';
-	import { UI_STATE } from '$lib/state/uiState.svelte';
-	import { SHORTCUT_SERVICE } from '$lib/shortcuts/shortcutService';
-	import { searchCommands, searchSubmenuItems } from '$lib/commandPalette/search';
 	import { COMMANDS } from '$lib/commandPalette/commandRegistry';
-	import { portal } from '@gitbutler/ui/utils/portal';
-	import { focusable } from '@gitbutler/ui/focus/focusable';
+	import { searchCommands, searchSubmenuItems } from '$lib/commandPalette/search';
+	import { SHORTCUT_SERVICE } from '$lib/shortcuts/shortcutService';
+	import { UI_STATE } from '$lib/state/uiState.svelte';
+	import { inject } from '@gitbutler/core/context';
 	import Textbox from '@gitbutler/ui/components/Textbox.svelte';
 	import ScrollableContainer from '@gitbutler/ui/components/scroll/ScrollableContainer.svelte';
+	import { focusable } from '@gitbutler/ui/focus/focusable';
+	import { portal } from '@gitbutler/ui/utils/portal';
 	import type { Command, SubmenuItem } from '$lib/commandPalette/types';
 
 	const backend = inject(BACKEND);
@@ -189,7 +189,9 @@
 		>
 			{#if viewMode === 'submenu'}
 				<div class="submenu-header">
-					<button class="back-button" onclick={goBack} tabindex="-1">← Back</button>
+					<button type="button" class="back-button" onclick={goBack} tabindex="-1">
+						← Back
+					</button>
 					<span class="submenu-title">{selectedCommand?.title}</span>
 				</div>
 			{/if}
@@ -213,6 +215,7 @@
 					<div class="commands-list">
 						{#each filteredItems as item, idx}
 							<button
+								type="button"
 								class="command-item"
 								class:highlighted={idx === highlightedIndex}
 								data-item-index={idx}
@@ -274,8 +277,8 @@
 	.submenu-header {
 		display: flex;
 		align-items: center;
-		gap: 8px;
 		padding: 8px 12px;
+		gap: 8px;
 		border-bottom: 1px solid var(--clr-border-2);
 		background-color: var(--clr-bg-2);
 	}
@@ -283,8 +286,8 @@
 	.back-button {
 		display: flex;
 		align-items: center;
-		gap: 4px;
 		padding: 4px 8px;
+		gap: 4px;
 		border: none;
 		border-radius: var(--radius-s);
 		background: none;
@@ -314,8 +317,8 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 12px;
 		padding: 48px 24px;
+		gap: 12px;
 		color: var(--clr-text-2);
 		font-size: 13px;
 	}
@@ -324,8 +327,8 @@
 		width: 24px;
 		height: 24px;
 		border: 2px solid var(--clr-border-2);
-		border-top-color: var(--clr-text-1);
 		border-radius: 50%;
+		border-top-color: var(--clr-text-1);
 		animation: spin 0.8s linear infinite;
 	}
 

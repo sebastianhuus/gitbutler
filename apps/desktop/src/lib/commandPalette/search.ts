@@ -1,5 +1,5 @@
 import Fuse from 'fuse.js';
-import type { Command, SubmenuItem } from './types';
+import type { Command, SubmenuItem } from '$lib/commandPalette/types';
 
 const fuseOptions = {
 	keys: ['title', 'keywords'],

@@ -1,11 +1,11 @@
-import type { Command } from './types';
+import type { Command } from '$lib/commandPalette/types';
 
 export const COMMANDS: Command[] = [
 	{
 		id: 'project.switch',
 		title: 'Switch Project',
 		keywords: ['project', 'switch', 'change'],
-		action: async ({ backend, goto }) => {
+		action: async ({ backend }) => {
 			// Fetch projects from backend
 			const projects = await backend.invoke('list_projects');
 

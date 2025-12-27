@@ -11,6 +11,7 @@
 	import ReduxResult from "$components/ReduxResult.svelte";
 	import UpstreamCommitsAction from "$components/UpstreamCommitsAction.svelte";
 	import { isLocalAndRemoteCommit, isUpstreamCommit } from "$components/lib";
+	import { BranchesSelectionActions } from "$lib/branches/branchesSelection";
 	import { commitCreatedAt } from "$lib/branches/v3";
 	import { commitStatusLabel } from "$lib/commits/commit";
 	import {
@@ -112,8 +113,29 @@
 		// Toggle: if this exact commit is already selected, clear the selection
 		if (currentSelection?.commitId === commitId && currentSelection?.branchName === branchName) {
 			laneState.selection.set(undefined);
+			// Also clear the global branches selection
+			if (stackId) {
+				BranchesSelectionActions.clear(projectState.branchesSelection);
+			}
 		} else {
 			laneState.selection.set({ branchName, commitId, upstream, previewOpen: true });
+			// Also update the global branches selection so command palette can find it
+			if (stackId) {
+				const hasLocal = branchDetails.hasLocal;
+				// First ensure the stack is selected with proper context
+				BranchesSelectionActions.selectStack(projectState.branchesSelection, {
+					stackId,
+					branchName,
+					inWorkspace: true,
+					hasLocal,
+					prNumber: branchDetails.prNumber ?? undefined
+				});
+				// Then select the specific commit (preserves stack context)
+				BranchesSelectionActions.selectCommit(projectState.branchesSelection, {
+					commitId,
+					remote: upstream ? branchDetails.remoteTrackingBranch : undefined
+				});
+			}
 		}
 		onclick?.();
 	}

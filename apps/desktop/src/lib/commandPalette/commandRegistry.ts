@@ -9,23 +9,13 @@ function getSelectedCommit(ctx: CommandAction): {
 	commitId: string;
 	stackId: string;
 } | null {
-	const { projectId, uiState, page } = ctx;
+	const { projectId, uiState } = ctx;
 	if (!projectId) return null;
 
-	// Try workspace view (lane selection) - check if we have stackId in params
-	const stackId = page.params.stackId;
-	if (stackId) {
-		const laneSelection = uiState.lane(stackId).selection.current;
-		if (laneSelection?.commitId && laneSelection?.stackId) {
-			return {
-				commitId: laneSelection.commitId,
-				stackId: laneSelection.stackId
-			};
-		}
-	}
-
-	// Try branches view (branchesSelection)
+	// Read from the global branchesSelection which is now updated by both
+	// workspace view and branches view when commits are clicked
 	const branchSelection = uiState.project(projectId).branchesSelection.current;
+
 	if (branchSelection.commitId && branchSelection.stackId) {
 		return {
 			commitId: branchSelection.commitId,

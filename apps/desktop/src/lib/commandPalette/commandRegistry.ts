@@ -38,11 +38,29 @@ export const COMMANDS: Command[] = [
 	},
 	{
 		id: 'integrate.upstream',
-		title: 'Merge Upstream',
-		keywords: ['merge', 'upstream', 'integrate'],
-		action: async ({ backend, projectId }) => {
+		title: 'Update Workspace',
+		keywords: ['update', 'workspace', 'merge', 'upstream', 'integrate', 'pull', 'sync'],
+		action: async ({ backend, projectId, shortcutService }) => {
 			if (!projectId) return;
-			await backend.invoke('integrate_upstream_commits', { projectId });
+
+			// Check if there are upstream commits before opening the modal
+			try {
+				const baseBranch = await backend.invoke('get_base_branch_data', { projectId });
+				const upstreamCommits = baseBranch?.behind ?? 0;
+
+				if (upstreamCommits === 0) {
+					// All up to date - don't open modal
+					console.info('No upstream changes to integrate - workspace is up to date');
+					return;
+				}
+
+				// There are upstream commits - open the modal
+				shortcutService.trigger('integrate-upstream');
+			} catch (error) {
+				console.error('Failed to check upstream status:', error);
+				// Still try to open the modal in case of error
+				shortcutService.trigger('integrate-upstream');
+			}
 		}
 	}
 ];

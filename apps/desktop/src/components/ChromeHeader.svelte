@@ -111,6 +111,7 @@
 	$effect(() =>
 		shortcutService.on("create-dependent-branch", () => createBranchModal?.show("dependent")),
 	);
+	$effect(() => shortcutService.on('integrate-upstream', () => modal?.show()));
 </script>
 
 {#if projectId}

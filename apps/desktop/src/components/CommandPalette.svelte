@@ -74,7 +74,7 @@
 	}
 
 	async function executeCommand(command: Command) {
-		const result = command.action({ backend, shortcutService, goto, projectId, uiState });
+		const result = command.action({ backend, shortcutService, goto, projectId, uiState, page });
 
 		// Handle void return: close palette (backward compatible)
 		if (result === undefined) {
@@ -118,7 +118,7 @@
 	}
 
 	function executeSubmenuItem(item: SubmenuItem) {
-		item.action({ backend, shortcutService, goto, projectId, uiState });
+		item.action({ backend, shortcutService, goto, projectId, uiState, page });
 		close();
 	}
 

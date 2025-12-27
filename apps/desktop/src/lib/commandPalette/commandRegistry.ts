@@ -1,5 +1,40 @@
 import { chipToasts } from '@gitbutler/ui';
-import type { Command } from '$lib/commandPalette/types';
+import type { Command, CommandAction } from '$lib/commandPalette/types';
+
+/**
+ * Helper to get the currently selected commit from either workspace view (lane selection)
+ * or branches view (branchesSelection). Returns commitId and stackId if a commit is selected.
+ */
+function getSelectedCommit(ctx: CommandAction): {
+	commitId: string;
+	stackId: string;
+} | null {
+	const { projectId, uiState, page } = ctx;
+	if (!projectId) return null;
+
+	// Try workspace view (lane selection) - check if we have stackId in params
+	const stackId = page.params.stackId;
+	if (stackId) {
+		const laneSelection = uiState.lane(stackId).selection.current;
+		if (laneSelection?.commitId && laneSelection?.stackId) {
+			return {
+				commitId: laneSelection.commitId,
+				stackId: laneSelection.stackId
+			};
+		}
+	}
+
+	// Try branches view (branchesSelection)
+	const branchSelection = uiState.project(projectId).branchesSelection.current;
+	if (branchSelection.commitId && branchSelection.stackId) {
+		return {
+			commitId: branchSelection.commitId,
+			stackId: branchSelection.stackId
+		};
+	}
+
+	return null;
+}
 
 export const COMMANDS: Command[] = [
 	{
@@ -61,6 +96,70 @@ export const COMMANDS: Command[] = [
 				console.error('Failed to check upstream status:', error);
 				// Still try to open the modal in case of error
 				shortcutService.trigger('integrate-upstream');
+			}
+		}
+	},
+	{
+		id: 'commit.insert-above',
+		title: 'Insert Empty Commit Above',
+		keywords: ['insert', 'empty', 'commit', 'above', 'blank'],
+		action: async (ctx) => {
+			const { backend, projectId } = ctx;
+			if (!projectId) return;
+
+			// Get the currently selected commit from either workspace or branches view
+			const selection = getSelectedCommit(ctx);
+
+			if (!selection) {
+				chipToasts.warning('Please select a commit first');
+				return;
+			}
+
+			const { commitId, stackId } = selection;
+
+			try {
+				await backend.invoke('insert_blank_commit', {
+					projectId,
+					stackId,
+					commitId,
+					offset: -1 // -1 = above
+				});
+				chipToasts.success('Empty commit inserted above');
+			} catch (error) {
+				console.error('Failed to insert empty commit:', error);
+				chipToasts.error('Failed to insert empty commit');
+			}
+		}
+	},
+	{
+		id: 'commit.insert-below',
+		title: 'Insert Empty Commit Below',
+		keywords: ['insert', 'empty', 'commit', 'below', 'blank'],
+		action: async (ctx) => {
+			const { backend, projectId } = ctx;
+			if (!projectId) return;
+
+			// Get the currently selected commit from either workspace or branches view
+			const selection = getSelectedCommit(ctx);
+
+			if (!selection) {
+				chipToasts.warning('Please select a commit first');
+				return;
+			}
+
+			const { commitId, stackId } = selection;
+
+			try {
+				await backend.invoke('insert_blank_commit', {
+					projectId,
+					stackId,
+					commitId,
+					offset: 1 // 1 = below
+				});
+				chipToasts.success('Empty commit inserted below');
+			} catch (error) {
+				console.error('Failed to insert empty commit:', error);
+				chipToasts.error('Failed to insert empty commit');
 			}
 		}
 	}

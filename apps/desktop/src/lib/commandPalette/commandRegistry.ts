@@ -1,3 +1,4 @@
+import { chipToasts } from '@gitbutler/ui';
 import type { Command } from '$lib/commandPalette/types';
 
 export const COMMANDS: Command[] = [
@@ -49,8 +50,8 @@ export const COMMANDS: Command[] = [
 				const upstreamCommits = baseBranch?.behind ?? 0;
 
 				if (upstreamCommits === 0) {
-					// All up to date - don't open modal
-					console.info('No upstream changes to integrate - workspace is up to date');
+					// All up to date - show friendly message
+					chipToasts.info('Workspace is up to date');
 					return;
 				}
 

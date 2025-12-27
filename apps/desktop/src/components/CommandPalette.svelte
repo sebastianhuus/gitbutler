@@ -134,10 +134,14 @@
 	function handleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
-			highlightedIndex = Math.min(highlightedIndex + 1, filteredItems.length - 1);
+			// Wrap around: if at last item, go to first; otherwise increment
+			highlightedIndex =
+				highlightedIndex >= filteredItems.length - 1 ? 0 : highlightedIndex + 1;
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
-			highlightedIndex = Math.max(highlightedIndex - 1, 0);
+			// Wrap around: if at first item, go to last; otherwise decrement
+			highlightedIndex =
+				highlightedIndex <= 0 ? filteredItems.length - 1 : highlightedIndex - 1;
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			if (viewMode === 'main') {

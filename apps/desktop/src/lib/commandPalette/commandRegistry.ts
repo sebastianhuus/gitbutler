@@ -5,7 +5,21 @@ export const COMMANDS: Command[] = [
 		id: 'project.switch',
 		title: 'Switch Project',
 		keywords: ['project', 'switch', 'change'],
-		action: ({ goto }) => goto('/')
+		action: async ({ backend, goto }) => {
+			// Fetch projects from backend
+			const projects = await backend.invoke('list_projects');
+
+			// Return submenu items
+			return projects.map((project: any) => ({
+				id: project.id,
+				title: project.title,
+				description: project.path,
+				keywords: [project.title, project.path],
+				action: ({ goto }: any) => {
+					goto(`/${project.id}`);
+				}
+			}));
+		}
 	},
 	{
 		id: 'branch.create',

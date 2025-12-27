@@ -5,13 +5,13 @@
 	import { BACKEND } from '$lib/backend';
 	import { UI_STATE } from '$lib/state/uiState.svelte';
 	import { SHORTCUT_SERVICE } from '$lib/shortcuts/shortcutService';
-	import { searchCommands } from '$lib/commandPalette/search';
+	import { searchCommands, searchSubmenuItems } from '$lib/commandPalette/search';
 	import { COMMANDS } from '$lib/commandPalette/commandRegistry';
 	import { portal } from '@gitbutler/ui/utils/portal';
 	import { focusable } from '@gitbutler/ui/focus/focusable';
 	import Textbox from '@gitbutler/ui/components/Textbox.svelte';
 	import ScrollableContainer from '@gitbutler/ui/components/scroll/ScrollableContainer.svelte';
-	import type { Command } from '$lib/commandPalette/types';
+	import type { Command, SubmenuItem } from '$lib/commandPalette/types';
 
 	const backend = inject(BACKEND);
 	const uiState = inject(UI_STATE);
@@ -20,15 +20,33 @@
 	const projectId = $derived(page.params.projectId);
 	const isOpen = $derived(uiState.global.commandPaletteOpen.current);
 
+	// View state
+	let viewMode = $state<'main' | 'submenu'>('main');
+	let selectedCommand = $state<Command | undefined>(undefined);
+	let submenuItems = $state<SubmenuItem[]>([]);
+	let isLoadingSubmenu = $state(false);
+
+	// Search state
 	let searchQuery = $state('');
 	let highlightedIndex = $state(0);
 	let searchInputElement = $state<HTMLInputElement>();
 
-	const filteredCommands = $derived(searchCommands(COMMANDS, searchQuery));
+	// Computed filtered items based on view mode
+	const filteredItems = $derived.by(() => {
+		if (viewMode === 'main') {
+			return searchCommands(COMMANDS, searchQuery);
+		} else {
+			return searchSubmenuItems(submenuItems, searchQuery);
+		}
+	});
 
-	// Reset search and index when opening
+	// Reset all state when opening
 	$effect(() => {
 		if (isOpen) {
+			viewMode = 'main';
+			selectedCommand = undefined;
+			submenuItems = [];
+			isLoadingSubmenu = false;
 			searchQuery = '';
 			highlightedIndex = 0;
 			// Focus search input
@@ -46,8 +64,8 @@
 
 	// Update highlighted index when search results change
 	$effect(() => {
-		if (highlightedIndex >= filteredCommands.length) {
-			highlightedIndex = Math.max(0, filteredCommands.length - 1);
+		if (highlightedIndex >= filteredItems.length) {
+			highlightedIndex = Math.max(0, filteredItems.length - 1);
 		}
 	});
 
@@ -55,22 +73,87 @@
 		uiState.global.commandPaletteOpen.set(false);
 	}
 
-	function executeCommand(command: Command) {
-		command.action({ backend, shortcutService, goto, projectId, uiState });
+	async function executeCommand(command: Command) {
+		const result = command.action({ backend, shortcutService, goto, projectId, uiState });
+
+		// Handle void return: close palette (backward compatible)
+		if (result === undefined) {
+			close();
+			return;
+		}
+
+		// Handle async submenu: show loading state
+		if (result instanceof Promise) {
+			isLoadingSubmenu = true;
+			try {
+				const items = await result;
+				if (items.length === 0) {
+					close(); // No items, just close
+					return;
+				}
+				showSubmenu(command, items);
+			} catch (error) {
+				console.error('Failed to load submenu:', error);
+				close();
+			} finally {
+				isLoadingSubmenu = false;
+			}
+		} else {
+			// Handle sync submenu: show immediately
+			if (result.length === 0) {
+				close();
+				return;
+			}
+			showSubmenu(command, result);
+		}
+	}
+
+	function showSubmenu(command: Command, items: SubmenuItem[]) {
+		selectedCommand = command;
+		submenuItems = items;
+		viewMode = 'submenu';
+		searchQuery = '';
+		highlightedIndex = 0;
+		setTimeout(() => searchInputElement?.focus(), 10);
+	}
+
+	function executeSubmenuItem(item: SubmenuItem) {
+		item.action({ backend, shortcutService, goto, projectId, uiState });
 		close();
+	}
+
+	function goBack() {
+		viewMode = 'main';
+		selectedCommand = undefined;
+		submenuItems = [];
+		searchQuery = '';
+		highlightedIndex = 0;
+		setTimeout(() => searchInputElement?.focus(), 10);
 	}
 
 	function handleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
-			highlightedIndex = Math.min(highlightedIndex + 1, filteredCommands.length - 1);
+			highlightedIndex = Math.min(highlightedIndex + 1, filteredItems.length - 1);
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			highlightedIndex = Math.max(highlightedIndex - 1, 0);
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
-			const command = filteredCommands[highlightedIndex];
-			if (command) executeCommand(command);
+			if (viewMode === 'main') {
+				const command = filteredItems[highlightedIndex] as Command;
+				if (command) executeCommand(command);
+			} else {
+				const item = filteredItems[highlightedIndex] as SubmenuItem;
+				if (item) executeSubmenuItem(item);
+			}
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			if (viewMode === 'submenu') {
+				goBack();
+			} else {
+				close();
+			}
 		}
 	}
 </script>
@@ -94,43 +177,69 @@
 				focusable: true,
 				dim: true,
 				onEsc: () => {
-					close();
+					if (viewMode === 'submenu') {
+						goBack();
+					} else {
+						close();
+					}
 					return true;
 				}
 			}}
 			onkeydown={handleKeyDown}
 		>
+			{#if viewMode === 'submenu'}
+				<div class="submenu-header">
+					<button class="back-button" onclick={goBack} tabindex="-1">← Back</button>
+					<span class="submenu-title">{selectedCommand?.title}</span>
+				</div>
+			{/if}
+
 			<div class="search-container">
 				<Textbox
 					bind:element={searchInputElement}
 					bind:value={searchQuery}
-					placeholder="Type a command..."
+					placeholder={viewMode === 'main' ? 'Type a command...' : 'Search...'}
 					autofocus
 				/>
 			</div>
 
-			<ScrollableContainer maxHeight="400px">
-				<div class="commands-list">
-					{#each filteredCommands as command, idx}
-						<button
-							class="command-item"
-							class:highlighted={idx === highlightedIndex}
-							data-command-index={idx}
-							onclick={() => executeCommand(command)}
-							onmouseenter={() => (highlightedIndex = idx)}
-						>
-							<span class="command-title">{command.title}</span>
-							{#if command.description}
-								<span class="command-description">{command.description}</span>
-							{/if}
-						</button>
-					{/each}
-
-					{#if filteredCommands.length === 0}
-						<div class="no-results">No commands found</div>
-					{/if}
+			{#if isLoadingSubmenu}
+				<div class="loading-container">
+					<div class="loading-spinner"></div>
+					<span>Loading...</span>
 				</div>
-			</ScrollableContainer>
+			{:else}
+				<ScrollableContainer maxHeight="400px">
+					<div class="commands-list">
+						{#each filteredItems as item, idx}
+							<button
+								class="command-item"
+								class:highlighted={idx === highlightedIndex}
+								data-item-index={idx}
+								onclick={() => {
+									if (viewMode === 'main') {
+										executeCommand(item as Command);
+									} else {
+										executeSubmenuItem(item as SubmenuItem);
+									}
+								}}
+								onmouseenter={() => (highlightedIndex = idx)}
+							>
+								<span class="command-title">{item.title}</span>
+								{#if item.description}
+									<span class="command-description">{item.description}</span>
+								{/if}
+							</button>
+						{/each}
+
+						{#if filteredItems.length === 0}
+							<div class="no-results">
+								{viewMode === 'main' ? 'No commands found' : 'No items found'}
+							</div>
+						{/if}
+					</div>
+				</ScrollableContainer>
+			{/if}
 		</div>
 	</div>
 {/if}
@@ -162,9 +271,68 @@
 		box-shadow: var(--fx-shadow-l);
 	}
 
+	.submenu-header {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 12px;
+		border-bottom: 1px solid var(--clr-border-2);
+		background-color: var(--clr-bg-2);
+	}
+
+	.back-button {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		padding: 4px 8px;
+		border: none;
+		border-radius: var(--radius-s);
+		background: none;
+		color: var(--clr-text-2);
+		font-size: 12px;
+		cursor: pointer;
+		transition: background-color 0.1s ease;
+
+		&:hover {
+			background-color: var(--clr-bg-1);
+		}
+	}
+
+	.submenu-title {
+		color: var(--clr-text-2);
+		font-weight: 500;
+		font-size: 12px;
+	}
+
 	.search-container {
 		padding: 12px;
 		border-bottom: 1px solid var(--clr-border-2);
+	}
+
+	.loading-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 12px;
+		padding: 48px 24px;
+		color: var(--clr-text-2);
+		font-size: 13px;
+	}
+
+	.loading-spinner {
+		width: 24px;
+		height: 24px;
+		border: 2px solid var(--clr-border-2);
+		border-top-color: var(--clr-text-1);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.commands-list {

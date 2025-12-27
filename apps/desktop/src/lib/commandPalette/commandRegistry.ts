@@ -94,10 +94,16 @@ export const COMMANDS: Command[] = [
 		title: 'Insert Empty Commit Above',
 		keywords: ['insert', 'empty', 'commit', 'above', 'blank'],
 		action: async (ctx) => {
-			const { backend, projectId } = ctx;
+			const { backend, projectId, page } = ctx;
 			if (!projectId) return;
 
-			// Get the currently selected commit from either workspace or branches view
+			// Check if we're in the workspace view
+			if (page.route.id !== '/[projectId]/workspace') {
+				chipToasts.info('This command is only available in the workspace view');
+				return;
+			}
+
+			// Get the currently selected commit
 			const selection = getSelectedCommit(ctx);
 
 			if (!selection) {
@@ -126,10 +132,16 @@ export const COMMANDS: Command[] = [
 		title: 'Insert Empty Commit Below',
 		keywords: ['insert', 'empty', 'commit', 'below', 'blank'],
 		action: async (ctx) => {
-			const { backend, projectId } = ctx;
+			const { backend, projectId, page } = ctx;
 			if (!projectId) return;
 
-			// Get the currently selected commit from either workspace or branches view
+			// Check if we're in the workspace view
+			if (page.route.id !== '/[projectId]/workspace') {
+				chipToasts.info('This command is only available in the workspace view');
+				return;
+			}
+
+			// Get the currently selected commit
 			const selection = getSelectedCommit(ctx);
 
 			if (!selection) {

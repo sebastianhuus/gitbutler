@@ -51,4 +51,6 @@ export type Command = {
 	description?: string;
 	action: (ctx: CommandAction) => CommandActionResult;
 	keywords?: string[];
+	/** Keyboard shortcut (e.g., "$mod+B", "⌘K") that will be formatted for the current platform */
+	shortcut?: string;
 };

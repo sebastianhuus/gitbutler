@@ -15,6 +15,7 @@
 	import ScrollableContainer from '@gitbutler/ui/components/scroll/ScrollableContainer.svelte';
 	import { focusable } from '@gitbutler/ui/focus/focusable';
 	import { portal } from '@gitbutler/ui/utils/portal';
+	import { formatHotkeyForPlatform } from '@gitbutler/ui/utils/hotkeySymbols';
 	import type { Command, SubmenuItem } from '$lib/commandPalette/types';
 
 	const backend = inject(BACKEND);
@@ -305,9 +306,16 @@
 									onclick={() => executeCommand(command)}
 									onmouseenter={() => (highlightedIndex = idx)}
 								>
-									<span class="command-title">{command.title}</span>
-									{#if command.description}
-										<span class="command-description">{command.description}</span>
+									<div class="command-content">
+										<span class="command-title">{command.title}</span>
+										{#if command.description}
+											<span class="command-description">{command.description}</span>
+										{/if}
+									</div>
+									{#if command.shortcut}
+										<span class="command-shortcut">
+											{formatHotkeyForPlatform(command.shortcut)}
+										</span>
 									{/if}
 								</button>
 							{/each}
@@ -329,9 +337,16 @@
 									onclick={() => executeCommand(command)}
 									onmouseenter={() => (highlightedIndex = globalIdx)}
 								>
-									<span class="command-title">{command.title}</span>
-									{#if command.description}
-										<span class="command-description">{command.description}</span>
+									<div class="command-content">
+										<span class="command-title">{command.title}</span>
+										{#if command.description}
+											<span class="command-description">{command.description}</span>
+										{/if}
+									</div>
+									{#if command.shortcut}
+										<span class="command-shortcut">
+											{formatHotkeyForPlatform(command.shortcut)}
+										</span>
 									{/if}
 								</button>
 							{/each}
@@ -353,9 +368,16 @@
 									}}
 									onmouseenter={() => (highlightedIndex = idx)}
 								>
-									<span class="command-title">{item.title}</span>
-									{#if item.description}
-										<span class="command-description">{item.description}</span>
+									<div class="command-content">
+										<span class="command-title">{item.title}</span>
+										{#if item.description}
+											<span class="command-description">{item.description}</span>
+										{/if}
+									</div>
+									{#if viewMode === 'main' && (item as Command).shortcut}
+										<span class="command-shortcut">
+											{formatHotkeyForPlatform((item as Command).shortcut!)}
+										</span>
 									{/if}
 								</button>
 							{/each}
@@ -471,9 +493,11 @@
 
 	.command-item {
 		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
 		padding: 12px 16px;
+		gap: 16px;
 		border: none;
 		background: none;
 		text-align: left;
@@ -486,6 +510,14 @@
 		}
 	}
 
+	.command-content {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		align-items: flex-start;
+		min-width: 0;
+	}
+
 	.command-title {
 		color: var(--clr-text-1);
 		font-weight: 500;
@@ -496,6 +528,22 @@
 		margin-top: 2px;
 		color: var(--clr-text-2);
 		font-size: 12px;
+	}
+
+	.command-shortcut {
+		flex-shrink: 0;
+		padding: 4px 8px;
+		border-radius: var(--radius-s);
+		background-color: var(--clr-bg-1);
+		color: var(--clr-text-2);
+		font-size: 12px;
+		font-family: monospace;
+		white-space: nowrap;
+	}
+
+	.command-item.highlighted .command-shortcut {
+		background-color: var(--clr-bg-1);
+		opacity: 0.8;
 	}
 
 	.no-results {

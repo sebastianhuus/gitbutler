@@ -69,6 +69,7 @@ export const COMMANDS: Command[] = [
 		id: 'branch.create',
 		title: 'Create Branch',
 		keywords: ['branch', 'create', 'new'],
+		shortcut: '⌘B',
 		action: ({ shortcutService }) => shortcutService.trigger('create-branch')
 	},
 	{
@@ -315,6 +316,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'global.settings',
 		title: 'Open Global Settings',
+		shortcut: '⌘,',
 		keywords: ['settings', 'preferences', 'global', 'general', 'config', 'configuration', 'app'],
 		action: ({ shortcutService }) => shortcutService.trigger('global-settings')
 	},

@@ -14,8 +14,8 @@
 	import Textbox from '@gitbutler/ui/components/Textbox.svelte';
 	import ScrollableContainer from '@gitbutler/ui/components/scroll/ScrollableContainer.svelte';
 	import { focusable } from '@gitbutler/ui/focus/focusable';
-	import { portal } from '@gitbutler/ui/utils/portal';
 	import { formatHotkeyForPlatform } from '@gitbutler/ui/utils/hotkeySymbols';
+	import { portal } from '@gitbutler/ui/utils/portal';
 	import type { Command, SubmenuItem } from '$lib/commandPalette/types';
 
 	const backend = inject(BACKEND);
@@ -532,18 +532,10 @@
 
 	.command-shortcut {
 		flex-shrink: 0;
-		padding: 4px 8px;
-		border-radius: var(--radius-s);
-		background-color: var(--clr-bg-1);
 		color: var(--clr-text-2);
-		font-size: 12px;
-		font-family: monospace;
+		font-size: 11px;
 		white-space: nowrap;
-	}
-
-	.command-item.highlighted .command-shortcut {
-		background-color: var(--clr-bg-1);
-		opacity: 0.8;
+		opacity: 0.6;
 	}
 
 	.no-results {

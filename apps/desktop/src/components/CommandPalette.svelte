@@ -51,19 +51,31 @@
 		}
 	});
 
-	// Computed recent and remaining commands for main view with no search
-	const showSections = $derived(viewMode === 'main' && searchQuery.trim() === '');
+	// Computed recent and remaining commands for main view (works with or without search)
+	const showSections = $derived(viewMode === 'main');
 	const recentCommandsList = $derived.by(() => {
 		if (!showSections) return [];
 		const recent = uiState.global.recentCommands.current || [];
-		return recent
+		const recentCommands = recent
 			.map((id) => COMMANDS.find((cmd) => cmd.id === id))
 			.filter((cmd): cmd is Command => cmd !== undefined);
+
+		// If searching, filter recent commands by search query
+		if (searchQuery.trim()) {
+			return searchCommands(recentCommands, searchQuery);
+		}
+		return recentCommands;
 	});
 	const remainingCommandsList = $derived.by(() => {
 		if (!showSections) return [];
 		const recent = uiState.global.recentCommands.current || [];
-		return COMMANDS.filter((cmd) => !recent.includes(cmd.id));
+		const remainingCommands = COMMANDS.filter((cmd) => !recent.includes(cmd.id));
+
+		// If searching, filter remaining commands by search query
+		if (searchQuery.trim()) {
+			return searchCommands(remainingCommands, searchQuery);
+		}
+		return remainingCommands;
 	});
 
 	// Reset all state when opening
@@ -330,7 +342,7 @@
 							{/each}
 
 							<!-- Divider between recent and remaining -->
-							{#if recentCommandsList.length > 0}
+							{#if recentCommandsList.length > 0 && remainingCommandsList.length > 0}
 								<div class="commands-divider"></div>
 							{/if}
 

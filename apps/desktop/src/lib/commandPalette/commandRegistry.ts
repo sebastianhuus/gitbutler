@@ -586,5 +586,41 @@ export const COMMANDS: Command[] = [
 				chipToasts.success('Stack collapsed');
 			}
 		}
+	},
+	{
+		id: 'commit.start',
+		title: 'Start a Commit',
+		group: 'Commit',
+		keywords: ['commit', 'changes', 'stage', 'create', 'new', 'start'],
+		action: ({ projectId, uiState, page }) => {
+			if (!projectId) return;
+
+			// Check if we're in the workspace view
+			if (page.route.id !== '/[projectId]/workspace') {
+				chipToasts.info('This command is only available in the workspace view');
+				return;
+			}
+
+			const projectState = uiState.project(projectId);
+			const workspaceSelection = projectState.workspaceSelection.current;
+
+			// Get branch name and stack ID from the current workspace selection
+			const branchName = workspaceSelection.branchName;
+			const stackId = workspaceSelection.stackId;
+
+			if (!branchName || !stackId) {
+				chipToasts.warning('Please select a branch first');
+				return;
+			}
+
+			// Set exclusive action to start commit
+			projectState.exclusiveAction.set({
+				type: 'commit',
+				branchName,
+				stackId
+			});
+
+			chipToasts.success('Starting commit');
+		}
 	}
 ];

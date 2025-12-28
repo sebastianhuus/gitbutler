@@ -47,6 +47,7 @@ const MOCK_GLOBAL_UI_STATE: GlobalUiState = {
 	detailsWidth: 25,
 	previewWidth: 30,
 	commandPaletteOpen: false,
+	recentCommands: [],
 };
 
 export function getUiStateMock() {

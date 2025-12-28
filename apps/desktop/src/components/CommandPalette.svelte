@@ -42,6 +42,21 @@
 		}
 	});
 
+	// Computed recent and remaining commands for main view with no search
+	const showSections = $derived(viewMode === 'main' && searchQuery.trim() === '');
+	const recentCommandsList = $derived.by(() => {
+		if (!showSections) return [];
+		const recent = uiState.global.recentCommands.current || [];
+		return recent
+			.map((id) => COMMANDS.find((cmd) => cmd.id === id))
+			.filter((cmd): cmd is Command => cmd !== undefined);
+	});
+	const remainingCommandsList = $derived.by(() => {
+		if (!showSections) return [];
+		const recent = uiState.global.recentCommands.current || [];
+		return COMMANDS.filter((cmd) => !recent.includes(cmd.id));
+	});
+
 	// Reset all state when opening
 	$effect(() => {
 		if (isOpen) {
@@ -64,10 +79,18 @@
 		}
 	});
 
+	// Total items count for navigation
+	const totalItemsCount = $derived.by(() => {
+		if (showSections) {
+			return recentCommandsList.length + remainingCommandsList.length;
+		}
+		return filteredItems.length;
+	});
+
 	// Update highlighted index when search results change
 	$effect(() => {
-		if (highlightedIndex >= filteredItems.length) {
-			highlightedIndex = Math.max(0, filteredItems.length - 1);
+		if (highlightedIndex >= totalItemsCount) {
+			highlightedIndex = Math.max(0, totalItemsCount - 1);
 		}
 	});
 
@@ -85,6 +108,9 @@
 			page,
 			modeService
 		});
+
+		// Track as recent command
+		trackRecentCommand(command.id);
 
 		// Handle void return: close palette (backward compatible)
 		if (result === undefined || result === null) {
@@ -120,6 +146,12 @@
 		}
 	}
 
+	function trackRecentCommand(commandId: string) {
+		const recent = uiState.global.recentCommands.current || [];
+		const updated = [commandId, ...recent.filter((id) => id !== commandId)].slice(0, 5);
+		uiState.global.recentCommands.set(updated);
+	}
+
 	function showSubmenu(command: Command, items: SubmenuItem[]) {
 		selectedCommand = command;
 		submenuItems = items;
@@ -147,15 +179,15 @@
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
 			// Wrap around: if at last item, go to first; otherwise increment
-			highlightedIndex = highlightedIndex >= filteredItems.length - 1 ? 0 : highlightedIndex + 1;
+			highlightedIndex = highlightedIndex >= totalItemsCount - 1 ? 0 : highlightedIndex + 1;
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			// Wrap around: if at first item, go to last; otherwise decrement
-			highlightedIndex = highlightedIndex <= 0 ? filteredItems.length - 1 : highlightedIndex - 1;
+			highlightedIndex = highlightedIndex <= 0 ? totalItemsCount - 1 : highlightedIndex - 1;
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			if (viewMode === 'main') {
-				const command = filteredItems[highlightedIndex] as Command;
+				const command = getCommandAtIndex(highlightedIndex);
 				if (command) executeCommand(command);
 			} else {
 				const item = filteredItems[highlightedIndex] as SubmenuItem;
@@ -169,6 +201,18 @@
 				close();
 			}
 		}
+	}
+
+	// Helper to get command at index when showing sections
+	function getCommandAtIndex(index: number): Command | undefined {
+		if (showSections) {
+			if (index < recentCommandsList.length) {
+				return recentCommandsList[index];
+			} else {
+				return remainingCommandsList[index - recentCommandsList.length];
+			}
+		}
+		return filteredItems[index] as Command;
 	}
 </script>
 
@@ -184,6 +228,10 @@
 		}}
 	>
 		<div
+			role="dialog"
+			aria-modal="true"
+			aria-label="Command Palette"
+			tabindex="-1"
 			class="command-palette"
 			use:focusable={{
 				trap: true,
@@ -225,32 +273,78 @@
 			{:else}
 				<ScrollableContainer maxHeight="400px">
 					<div class="commands-list">
-						{#each filteredItems as item, idx}
-							<button
-								type="button"
-								class="command-item"
-								class:highlighted={idx === highlightedIndex}
-								data-item-index={idx}
-								onclick={() => {
-									if (viewMode === 'main') {
-										executeCommand(item as Command);
-									} else {
-										executeSubmenuItem(item as SubmenuItem);
-									}
-								}}
-								onmouseenter={() => (highlightedIndex = idx)}
-							>
-								<span class="command-title">{item.title}</span>
-								{#if item.description}
-									<span class="command-description">{item.description}</span>
-								{/if}
-							</button>
-						{/each}
+						{#if showSections}
+							<!-- Recent commands section -->
+							{#each recentCommandsList as command, idx}
+								<button
+									type="button"
+									class="command-item"
+									class:highlighted={idx === highlightedIndex}
+									data-item-index={idx}
+									data-command-index={idx}
+									onclick={() => executeCommand(command)}
+									onmouseenter={() => (highlightedIndex = idx)}
+								>
+									<span class="command-title">{command.title}</span>
+									{#if command.description}
+										<span class="command-description">{command.description}</span>
+									{/if}
+								</button>
+							{/each}
 
-						{#if filteredItems.length === 0}
-							<div class="no-results">
-								{viewMode === 'main' ? 'No commands found' : 'No items found'}
-							</div>
+							<!-- Divider between recent and remaining -->
+							{#if recentCommandsList.length > 0}
+								<div class="commands-divider"></div>
+							{/if}
+
+							<!-- Remaining commands section -->
+							{#each remainingCommandsList as command, idx}
+								{@const globalIdx = idx + recentCommandsList.length}
+								<button
+									type="button"
+									class="command-item"
+									class:highlighted={globalIdx === highlightedIndex}
+									data-item-index={globalIdx}
+									data-command-index={globalIdx}
+									onclick={() => executeCommand(command)}
+									onmouseenter={() => (highlightedIndex = globalIdx)}
+								>
+									<span class="command-title">{command.title}</span>
+									{#if command.description}
+										<span class="command-description">{command.description}</span>
+									{/if}
+								</button>
+							{/each}
+						{:else}
+							<!-- Regular filtered view (with search or submenu) -->
+							{#each filteredItems as item, idx}
+								<button
+									type="button"
+									class="command-item"
+									class:highlighted={idx === highlightedIndex}
+									data-item-index={idx}
+									data-command-index={idx}
+									onclick={() => {
+										if (viewMode === 'main') {
+											executeCommand(item as Command);
+										} else {
+											executeSubmenuItem(item as SubmenuItem);
+										}
+									}}
+									onmouseenter={() => (highlightedIndex = idx)}
+								>
+									<span class="command-title">{item.title}</span>
+									{#if item.description}
+										<span class="command-description">{item.description}</span>
+									{/if}
+								</button>
+							{/each}
+
+							{#if filteredItems.length === 0}
+								<div class="no-results">
+									{viewMode === 'main' ? 'No commands found' : 'No items found'}
+								</div>
+							{/if}
 						{/if}
 					</div>
 				</ScrollableContainer>
@@ -389,5 +483,12 @@
 		color: var(--clr-text-2);
 		font-size: 13px;
 		text-align: center;
+	}
+
+	.commands-divider {
+		height: 1px;
+		margin: 4px 0;
+		background-color: var(--clr-border-2);
+		opacity: 0.5;
 	}
 </style>

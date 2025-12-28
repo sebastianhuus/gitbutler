@@ -153,6 +153,7 @@ export type GlobalUiState = {
 	draftBranchName: string | undefined;
 	modal: GlobalModalState | undefined;
 	commandPaletteOpen: boolean;
+	recentCommands: string[];
 };
 
 export const UI_STATE = new InjectionToken<UiState>("UiState");
@@ -209,6 +210,7 @@ export class UiState {
 		draftBranchName: undefined,
 		modal: undefined,
 		commandPaletteOpen: false,
+		recentCommands: [],
 	});
 
 	constructor(

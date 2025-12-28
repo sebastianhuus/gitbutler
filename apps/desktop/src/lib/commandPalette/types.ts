@@ -2,6 +2,7 @@ import type { IBackend } from '$lib/backend';
 import type { DefaultForgeFactory } from '$lib/forge/forgeFactory.svelte';
 import type { ModeService } from '$lib/mode/modeService';
 import type { ProjectsService } from '$lib/project/projectsService';
+import type { UncommittedService } from '$lib/selection/uncommittedService.svelte';
 import type { ShortcutService } from '$lib/shortcuts/shortcutService';
 import type { StackService } from '$lib/stacks/stackService.svelte';
 import type { UiState } from '$lib/state/uiState.svelte';
@@ -20,6 +21,7 @@ export type CommandAction = {
 	urlService: UrlService;
 	stackService: StackService;
 	projectsService: ProjectsService;
+	uncommittedService: UncommittedService;
 };
 
 /**

@@ -592,7 +592,7 @@ export const COMMANDS: Command[] = [
 		title: 'Start a Commit',
 		group: 'Commit',
 		keywords: ['commit', 'changes', 'stage', 'create', 'new', 'start'],
-		action: ({ projectId, uiState, page }) => {
+		action: ({ projectId, uiState, page, uncommittedService }) => {
 			if (!projectId) return;
 
 			// Check if we're in the workspace view
@@ -611,6 +611,28 @@ export const COMMANDS: Command[] = [
 			if (!branchName || !stackId) {
 				chipToasts.warning('Please select a branch first');
 				return;
+			}
+
+			// Check if there are any changes before starting a commit
+			// Use the same logic as startCommitVisible()
+			const assignments = uncommittedService.getAssignmentsByStackId(stackId);
+			const unassigned = uncommittedService.getAssignmentsByStackId(null);
+			const hasChanges = assignments.length + unassigned.length > 0;
+
+			if (!hasChanges) {
+				chipToasts.info('No changes to commit');
+				return;
+			}
+
+			// Check all files before starting the commit
+			// Use the same logic as checkAllFiles() in StackView.svelte
+			if (stackId && assignments.length > 0) {
+				// If there are assignments for this stack, we check those.
+				uncommittedService.checkAll(stackId);
+				// Uncheck the unassigned files.
+				uncommittedService.uncheckAll(null);
+			} else {
+				uncommittedService.checkAll(null);
 			}
 
 			// Set exclusive action to start commit

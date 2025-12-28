@@ -82,6 +82,14 @@ export const COMMANDS: Command[] = [
 		}
 	},
 	{
+		id: 'project.clone',
+		title: 'Clone Repository',
+		keywords: ['clone', 'repository', 'git', 'remote', 'github', 'gitlab', 'new'],
+		action: ({ goto }) => {
+			goto('/onboarding/clone');
+		}
+	},
+	{
 		id: 'branch.create',
 		title: 'Create Branch',
 		keywords: ['branch', 'create', 'new'],

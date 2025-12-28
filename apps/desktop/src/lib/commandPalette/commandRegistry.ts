@@ -488,6 +488,51 @@ export const COMMANDS: Command[] = [
 		}
 	},
 	{
+		id: 'branch.rename',
+		title: 'Rename Branch',
+		group: 'Branch',
+		keywords: ['branch', 'rename', 'name', 'edit'],
+		action: (ctx) => {
+			const { projectId, uiState, page } = ctx;
+			if (!projectId) return;
+
+			// Check if we're in the workspace or branches view
+			if (page.route.id !== '/[projectId]/workspace' && page.route.id !== '/[projectId]/branches') {
+				chipToasts.info('This command is only available in the workspace or branches view');
+				return;
+			}
+
+			const projectState = uiState.project(projectId);
+
+			// Get selection based on current route
+			const selection =
+				page.route.id === '/[projectId]/workspace'
+					? projectState.workspaceSelection.current
+					: projectState.branchesSelection.current;
+
+			const { stackId, branchName, commitId } = selection;
+
+			// Don't allow renaming when a commit is selected
+			if (commitId) {
+				chipToasts.warning('Please select the branch header (not a commit) to rename');
+				return;
+			}
+
+			if (!stackId || !branchName) {
+				chipToasts.warning('Please select a branch first');
+				return;
+			}
+
+			// Set exclusive action to rename branch
+			projectState.exclusiveAction.set({
+				type: 'rename-branch',
+				stackId,
+				laneId: stackId,
+				branchName
+			});
+		}
+	},
+	{
 		id: 'stack.collapse',
 		title: 'Collapse Active Stack',
 		group: 'Stack',

@@ -56,6 +56,12 @@ export type ExclusiveAction =
 			commitId: string;
 	  }
 	| {
+			type: "rename-branch";
+			stackId: string | undefined;
+			laneId: string;
+			branchName: string;
+	  }
+	| {
 			type: "codegen";
 	  }
 	| {
@@ -399,6 +405,11 @@ export function replaceBranchInExclusiveAction(
 				return { ...action, branchName };
 			}
 			return action;
+		case "rename-branch":
+			if (action.branchName === oldBranchName) {
+				return { ...action, branchName };
+			}
+			return action;
 		case "codegen":
 			return action;
 	}
@@ -538,6 +549,14 @@ function updateExclusiveActionState(
 				projectState.exclusiveAction.set(undefined);
 			}
 			if (action.branchName && !branches.includes(action.branchName)) {
+				projectState.exclusiveAction.set(undefined);
+			}
+			break;
+		case "rename-branch":
+			if (action.stackId && !stackIds.includes(action.stackId)) {
+				projectState.exclusiveAction.set(undefined);
+			}
+			if (!branches.includes(action.branchName)) {
 				projectState.exclusiveAction.set(undefined);
 			}
 			break;

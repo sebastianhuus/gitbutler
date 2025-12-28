@@ -66,6 +66,20 @@
 	let renameBranchModal = $state<BranchRenameModal>();
 	let deleteBranchModal = $state<DeleteBranchModal>();
 
+	// Handle exclusive action for renaming branch
+	$effect(() => {
+		const exclusiveAction = uiState.project(projectId).exclusiveAction.current;
+		if (
+			exclusiveAction?.type === 'rename-branch' &&
+			exclusiveAction.stackId === stackId &&
+			exclusiveAction.branchName === branchName
+		) {
+			renameBranchModal?.show();
+			// Clear the exclusive action after showing the modal
+			uiState.project(projectId).exclusiveAction.set(undefined);
+		}
+	});
+	
 	// Handler for resolving conflicts - find the earliest conflicted commit
 	async function handleResolveConflicts() {
 		if (conflictedCommitsInBranch.length === 0 || !stackId) return;

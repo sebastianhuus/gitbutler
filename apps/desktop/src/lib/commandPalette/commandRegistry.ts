@@ -302,5 +302,14 @@ export const COMMANDS: Command[] = [
 				chipToasts.error('Failed to enter edit mode');
 			}
 		}
+	},
+	{
+		id: 'project.settings',
+		title: 'Open Project Settings',
+		keywords: ['project', 'settings', 'preferences', 'config', 'configuration'],
+		action: ({ shortcutService, projectId }) => {
+			if (!projectId) return;
+			shortcutService.trigger('project-settings');
+		}
 	}
 ];

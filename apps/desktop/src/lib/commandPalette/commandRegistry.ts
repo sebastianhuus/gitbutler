@@ -333,17 +333,27 @@ export const COMMANDS: Command[] = [
 				const selection = getSelectedCommit(ctx);
 				const projectState = uiState.project(projectId);
 
-				// Get the current branch name from selection (if any)
+				// Get the current branch name and stackId from selection (if any)
+				const workspaceSelection = projectState.workspaceSelection.current;
+				const branchesSelection = projectState.branchesSelection.current;
+
 				const currentBranchName =
 					page.route.id === '/[projectId]/workspace'
-						? projectState.workspaceSelection.current.branchName
+						? workspaceSelection.branchName
 						: page.route.id === '/[projectId]/branches'
-							? projectState.branchesSelection.current.branchName
+							? branchesSelection.branchName
 							: undefined;
 
-				// If we have a selected commit and branch name, try to open it directly
-				if (selection && currentBranchName) {
-					const { stackId } = selection;
+				const currentStackId =
+					page.route.id === '/[projectId]/workspace'
+						? workspaceSelection.stackId
+						: page.route.id === '/[projectId]/branches'
+							? branchesSelection.stackId
+							: undefined;
+
+				// If we have a branch name and stackId (with or without commit), try to open it directly
+				if (currentBranchName && currentStackId) {
+					const stackId = currentStackId;
 
 					// Fetch the branch details to check if it has a remote
 					const stackDetails = await stackService.api.endpoints.stackDetails.fetch({

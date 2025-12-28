@@ -262,8 +262,16 @@
 							!currentSelection?.commitId
 						) {
 							uiState.lane(laneId).selection.set(undefined);
+							// Also clear workspace selection for command palette
+							projectState.workspaceSelection.set({});
 						} else {
 							uiState.lane(laneId).selection.set({ branchName, previewOpen: true });
+							// Also update workspace selection for command palette
+							projectState.workspaceSelection.set({
+								branchName,
+								stackId: stackId || laneId,
+								commitId: undefined
+							});
 						}
 						onclick?.();
 					}}

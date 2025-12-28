@@ -311,5 +311,11 @@ export const COMMANDS: Command[] = [
 			if (!projectId) return;
 			shortcutService.trigger('project-settings');
 		}
+	},
+	{
+		id: 'global.settings',
+		title: 'Open Global Settings',
+		keywords: ['settings', 'preferences', 'global', 'general', 'config', 'configuration', 'app'],
+		action: ({ shortcutService }) => shortcutService.trigger('global-settings')
 	}
 ];

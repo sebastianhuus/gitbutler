@@ -1,3 +1,4 @@
+import { editPatch } from '$lib/editMode/editPatchUtils';
 import { chipToasts } from '@gitbutler/ui';
 import type { Command, CommandAction } from '$lib/commandPalette/types';
 
@@ -216,6 +217,87 @@ export const COMMANDS: Command[] = [
 				console.error('Failed to insert empty commit:', error);
 				chipToasts.error('Failed to insert empty commit');
 			}
+		}
+	},
+	{
+		id: 'commit.edit-selected',
+		title: 'Edit Selected Commit',
+		keywords: ['edit', 'commit', 'selected', 'message', 'patch', 'modify'],
+		action: (ctx) => {
+			const { projectId, uiState, page } = ctx;
+			if (!projectId) return;
+
+			// Check if we're in the workspace or branches view
+			if (page.route.id !== '/[projectId]/workspace' && page.route.id !== '/[projectId]/branches') {
+				chipToasts.info('This command is only available in the workspace or branches view');
+				return;
+			}
+
+			// Get the currently selected commit
+			const selection = getSelectedCommit(ctx);
+
+			if (!selection) {
+				chipToasts.warning('Please select a commit first');
+				return;
+			}
+
+			const { commitId, stackId } = selection;
+			const projectState = uiState.project(projectId);
+			const branchName =
+				page.route.id === '/[projectId]/workspace'
+					? projectState.workspaceSelection.current.branchName
+					: projectState.branchesSelection.current.branchName;
+
+			if (!branchName) {
+				chipToasts.warning('Could not determine branch name');
+				return;
+			}
+
+			// Return submenu with edit options
+			return [
+				{
+					id: 'edit-message',
+					title: 'Edit Commit Message',
+					description: 'Edit the commit message only',
+					keywords: ['edit', 'message', 'commit'],
+					action: ({ uiState, projectId }) => {
+						if (!projectId) return;
+
+						// Set exclusive action to edit commit message
+						uiState.project(projectId).exclusiveAction.set({
+							type: 'edit-commit-message',
+							stackId,
+							branchName,
+							commitId
+						});
+
+						chipToasts.success('Editing commit message');
+					}
+				},
+				{
+					id: 'edit-commit',
+					title: 'Edit Commit',
+					description: 'Edit the commit contents (files and changes)',
+					keywords: ['edit', 'commit', 'patch', 'files'],
+					action: async ({ modeService, projectId }) => {
+						if (!projectId) return;
+
+						try {
+							await editPatch({
+								modeService,
+								commitId,
+								stackId,
+								projectId
+							});
+
+							chipToasts.success('Entering edit mode');
+						} catch (error) {
+							console.error('Failed to enter edit mode:', error);
+							chipToasts.error('Failed to enter edit mode');
+						}
+					}
+				}
+			];
 		}
 	}
 ];

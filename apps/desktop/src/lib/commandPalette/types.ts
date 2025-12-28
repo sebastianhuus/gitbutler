@@ -1,4 +1,5 @@
 import type { IBackend } from '$lib/backend';
+import type { ModeService } from '$lib/mode/modeService';
 import type { ShortcutService } from '$lib/shortcuts/shortcutService';
 import type { UiState } from '$lib/state/uiState.svelte';
 import type { Page } from '@sveltejs/kit';
@@ -10,6 +11,7 @@ export type CommandAction = {
 	uiState: UiState;
 	shortcutService: ShortcutService;
 	page: Page;
+	modeService: ModeService;
 };
 
 /**

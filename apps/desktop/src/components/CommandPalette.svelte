@@ -4,6 +4,7 @@
 	import { BACKEND } from '$lib/backend';
 	import { COMMANDS } from '$lib/commandPalette/commandRegistry';
 	import { searchCommands, searchSubmenuItems } from '$lib/commandPalette/search';
+	import { MODE_SERVICE } from '$lib/mode/modeService';
 	import { SHORTCUT_SERVICE } from '$lib/shortcuts/shortcutService';
 	import { UI_STATE } from '$lib/state/uiState.svelte';
 	import { inject } from '@gitbutler/core/context';
@@ -16,6 +17,7 @@
 	const backend = inject(BACKEND);
 	const uiState = inject(UI_STATE);
 	const shortcutService = inject(SHORTCUT_SERVICE);
+	const modeService = inject(MODE_SERVICE);
 
 	const projectId = $derived(page.params.projectId);
 	const isOpen = $derived(uiState.global.commandPaletteOpen.current);
@@ -74,7 +76,15 @@
 	}
 
 	async function executeCommand(command: Command) {
-		const result = command.action({ backend, shortcutService, goto, projectId, uiState, page });
+		const result = command.action({
+			backend,
+			shortcutService,
+			goto,
+			projectId,
+			uiState,
+			page,
+			modeService
+		});
 
 		// Handle void return: close palette (backward compatible)
 		if (result === undefined || result === null) {
@@ -120,7 +130,7 @@
 	}
 
 	function executeSubmenuItem(item: SubmenuItem) {
-		item.action({ backend, shortcutService, goto, projectId, uiState, page });
+		item.action({ backend, shortcutService, goto, projectId, uiState, page, modeService });
 		close();
 	}
 
@@ -137,13 +147,11 @@
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
 			// Wrap around: if at last item, go to first; otherwise increment
-			highlightedIndex =
-				highlightedIndex >= filteredItems.length - 1 ? 0 : highlightedIndex + 1;
+			highlightedIndex = highlightedIndex >= filteredItems.length - 1 ? 0 : highlightedIndex + 1;
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			// Wrap around: if at first item, go to last; otherwise decrement
-			highlightedIndex =
-				highlightedIndex <= 0 ? filteredItems.length - 1 : highlightedIndex - 1;
+			highlightedIndex = highlightedIndex <= 0 ? filteredItems.length - 1 : highlightedIndex - 1;
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			if (viewMode === 'main') {
@@ -195,9 +203,7 @@
 		>
 			{#if viewMode === 'submenu'}
 				<div class="submenu-header">
-					<button type="button" class="back-button" onclick={goBack} tabindex="-1">
-						← Back
-					</button>
+					<button type="button" class="back-button" onclick={goBack} tabindex="-1"> ← Back </button>
 					<span class="submenu-title">{selectedCommand?.title}</span>
 				</div>
 			{/if}

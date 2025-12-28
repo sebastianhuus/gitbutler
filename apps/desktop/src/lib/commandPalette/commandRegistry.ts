@@ -487,6 +487,22 @@ export const COMMANDS: Command[] = [
 			} else {
 				// Not folded, fold it
 				foldedStacks.set([...currentFolded, stackId]);
+
+				// Clear selections to close any open drawers
+				// Clear lane selection (if the laneId matches the stackId)
+				uiState.lane(stackId).selection.set(undefined);
+
+				// Clear workspace/branches selection if it matches this stack
+				if (page.route.id === '/[projectId]/workspace') {
+					if (projectState.workspaceSelection.current.stackId === stackId) {
+						projectState.workspaceSelection.set({});
+					}
+				} else if (page.route.id === '/[projectId]/branches') {
+					if (projectState.branchesSelection.current.stackId === stackId) {
+						projectState.branchesSelection.set({});
+					}
+				}
+
 				chipToasts.success('Stack collapsed');
 			}
 		}

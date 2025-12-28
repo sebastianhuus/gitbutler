@@ -220,9 +220,9 @@ export const COMMANDS: Command[] = [
 		}
 	},
 	{
-		id: 'commit.edit-selected',
-		title: 'Edit Selected Commit',
-		keywords: ['edit', 'commit', 'selected', 'message', 'patch', 'modify'],
+		id: 'commit.edit-message',
+		title: 'Edit Commit Message',
+		keywords: ['edit', 'commit', 'message', 'rename', 'amend'],
 		action: (ctx) => {
 			const { projectId, uiState, page } = ctx;
 			if (!projectId) return;
@@ -253,51 +253,54 @@ export const COMMANDS: Command[] = [
 				return;
 			}
 
-			// Return submenu with edit options
-			return [
-				{
-					id: 'edit-message',
-					title: 'Edit Commit Message',
-					description: 'Edit the commit message only',
-					keywords: ['edit', 'message', 'commit'],
-					action: ({ uiState, projectId }) => {
-						if (!projectId) return;
+			// Set exclusive action to edit commit message
+			projectState.exclusiveAction.set({
+				type: 'edit-commit-message',
+				stackId,
+				branchName,
+				commitId
+			});
 
-						// Set exclusive action to edit commit message
-						uiState.project(projectId).exclusiveAction.set({
-							type: 'edit-commit-message',
-							stackId,
-							branchName,
-							commitId
-						});
+			chipToasts.success('Editing commit message');
+		}
+	},
+	{
+		id: 'commit.edit',
+		title: 'Edit Commit',
+		keywords: ['edit', 'commit', 'patch', 'files', 'changes', 'modify'],
+		action: async (ctx) => {
+			const { projectId, modeService, page } = ctx;
+			if (!projectId) return;
 
-						chipToasts.success('Editing commit message');
-					}
-				},
-				{
-					id: 'edit-commit',
-					title: 'Edit Commit',
-					description: 'Edit the commit contents (files and changes)',
-					keywords: ['edit', 'commit', 'patch', 'files'],
-					action: async ({ modeService, projectId }) => {
-						if (!projectId) return;
+			// Check if we're in the workspace or branches view
+			if (page.route.id !== '/[projectId]/workspace' && page.route.id !== '/[projectId]/branches') {
+				chipToasts.info('This command is only available in the workspace or branches view');
+				return;
+			}
 
-						try {
-							await editPatch({
-								modeService,
-								commitId,
-								stackId,
-								projectId
-							});
+			// Get the currently selected commit
+			const selection = getSelectedCommit(ctx);
 
-							chipToasts.success('Entering edit mode');
-						} catch (error) {
-							console.error('Failed to enter edit mode:', error);
-							chipToasts.error('Failed to enter edit mode');
-						}
-					}
-				}
-			];
+			if (!selection) {
+				chipToasts.warning('Please select a commit first');
+				return;
+			}
+
+			const { commitId, stackId } = selection;
+
+			try {
+				await editPatch({
+					modeService,
+					commitId,
+					stackId,
+					projectId
+				});
+
+				chipToasts.success('Entering edit mode');
+			} catch (error) {
+				console.error('Failed to enter edit mode:', error);
+				chipToasts.error('Failed to enter edit mode');
+			}
 		}
 	}
 ];

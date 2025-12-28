@@ -1,4 +1,5 @@
 import { editPatch } from '$lib/editMode/editPatchUtils';
+import { persisted } from '@gitbutler/shared/persisted';
 import { chipToasts } from '@gitbutler/ui';
 import type { Command, CommandAction } from '$lib/commandPalette/types';
 
@@ -449,6 +450,44 @@ export const COMMANDS: Command[] = [
 			} catch (error) {
 				console.error('Failed to fetch branches:', error);
 				chipToasts.error('Failed to fetch branches');
+			}
+		}
+	},
+	{
+		id: 'stack.collapse',
+		title: 'Collapse Active Stack',
+		keywords: ['stack', 'collapse', 'fold', 'hide', 'minimize'],
+		action: ({ projectId, uiState, page }) => {
+			if (!projectId) return;
+
+			const projectState = uiState.project(projectId);
+
+			// Get stackId from the appropriate selection based on current route
+			const stackId =
+				page.route.id === '/[projectId]/workspace'
+					? projectState.workspaceSelection.current.stackId
+					: page.route.id === '/[projectId]/branches'
+						? projectState.branchesSelection.current.stackId
+						: undefined;
+
+			if (!stackId) {
+				chipToasts.warning('Please select a stack first');
+				return;
+			}
+
+			// Use the same persisted store as CollapseStackButton
+			const foldedStacks = persisted<string[]>([], `folded-stacks-${projectId}`);
+			const currentFolded = foldedStacks.current || [];
+
+			// Toggle fold state
+			if (currentFolded.includes(stackId)) {
+				// Already folded, unfold it
+				foldedStacks.set(currentFolded.filter((id) => id !== stackId));
+				chipToasts.success('Stack expanded');
+			} else {
+				// Not folded, fold it
+				foldedStacks.set([...currentFolded, stackId]);
+				chipToasts.success('Stack collapsed');
 			}
 		}
 	}

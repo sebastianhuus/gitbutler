@@ -1,7 +1,10 @@
 import type { IBackend } from '$lib/backend';
+import type { DefaultForgeFactory } from '$lib/forge/forgeFactory.svelte';
 import type { ModeService } from '$lib/mode/modeService';
 import type { ShortcutService } from '$lib/shortcuts/shortcutService';
+import type { StackService } from '$lib/stacks/stackService.svelte';
 import type { UiState } from '$lib/state/uiState.svelte';
+import type { UrlService } from '$lib/utils/url';
 import type { Page } from '@sveltejs/kit';
 
 export type CommandAction = {
@@ -12,6 +15,9 @@ export type CommandAction = {
 	shortcutService: ShortcutService;
 	page: Page;
 	modeService: ModeService;
+	forge: DefaultForgeFactory;
+	urlService: UrlService;
+	stackService: StackService;
 };
 
 /**

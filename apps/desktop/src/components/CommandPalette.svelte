@@ -4,9 +4,12 @@
 	import { BACKEND } from '$lib/backend';
 	import { COMMANDS } from '$lib/commandPalette/commandRegistry';
 	import { searchCommands, searchSubmenuItems } from '$lib/commandPalette/search';
+	import { DEFAULT_FORGE_FACTORY } from '$lib/forge/forgeFactory.svelte';
 	import { MODE_SERVICE } from '$lib/mode/modeService';
 	import { SHORTCUT_SERVICE } from '$lib/shortcuts/shortcutService';
+	import { STACK_SERVICE } from '$lib/stacks/stackService.svelte';
 	import { UI_STATE } from '$lib/state/uiState.svelte';
+	import { URL_SERVICE } from '$lib/utils/url';
 	import { inject } from '@gitbutler/core/context';
 	import Textbox from '@gitbutler/ui/components/Textbox.svelte';
 	import ScrollableContainer from '@gitbutler/ui/components/scroll/ScrollableContainer.svelte';
@@ -18,6 +21,9 @@
 	const uiState = inject(UI_STATE);
 	const shortcutService = inject(SHORTCUT_SERVICE);
 	const modeService = inject(MODE_SERVICE);
+	const forge = inject(DEFAULT_FORGE_FACTORY);
+	const urlService = inject(URL_SERVICE);
+	const stackService = inject(STACK_SERVICE);
 
 	const projectId = $derived(page.params.projectId);
 	const isOpen = $derived(uiState.global.commandPaletteOpen.current);
@@ -106,7 +112,10 @@
 			projectId,
 			uiState,
 			page,
-			modeService
+			modeService,
+			forge,
+			urlService,
+			stackService
 		});
 
 		// Track as recent command
@@ -162,7 +171,18 @@
 	}
 
 	function executeSubmenuItem(item: SubmenuItem) {
-		item.action({ backend, shortcutService, goto, projectId, uiState, page, modeService });
+		item.action({
+			backend,
+			shortcutService,
+			goto,
+			projectId,
+			uiState,
+			page,
+			modeService,
+			forge,
+			urlService,
+			stackService
+		});
 		close();
 	}
 

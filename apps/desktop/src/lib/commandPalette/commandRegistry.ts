@@ -317,5 +317,127 @@ export const COMMANDS: Command[] = [
 		title: 'Open Global Settings',
 		keywords: ['settings', 'preferences', 'global', 'general', 'config', 'configuration', 'app'],
 		action: ({ shortcutService }) => shortcutService.trigger('global-settings')
+	},
+	{
+		id: 'branch.open-in-browser',
+		title: 'Open Branch in Browser',
+		keywords: ['branch', 'open', 'browser', 'github', 'gitlab', 'remote', 'url'],
+		action: async (ctx) => {
+			const { projectId, stackService, forge, urlService, uiState, page } = ctx;
+			if (!projectId) return;
+
+			try {
+				// Check if there's a currently selected commit
+				const selection = getSelectedCommit(ctx);
+				const projectState = uiState.project(projectId);
+
+				// Get the current branch name from selection (if any)
+				const currentBranchName =
+					page.route.id === '/[projectId]/workspace'
+						? projectState.workspaceSelection.current.branchName
+						: page.route.id === '/[projectId]/branches'
+							? projectState.branchesSelection.current.branchName
+							: undefined;
+
+				// If we have a selected commit and branch name, try to open it directly
+				if (selection && currentBranchName) {
+					const { stackId } = selection;
+
+					// Fetch the branch details to check if it has a remote
+					const stackDetails = await stackService.api.endpoints.stackDetails.fetch({
+						projectId,
+						stackId
+					});
+
+					if (stackDetails?.stackInfo?.branchDetails) {
+						const branchDetail = stackDetails.stackInfo.branchDetails.find(
+							(b) => b.name === currentBranchName
+						);
+
+						if (branchDetail?.remoteTrackingBranch) {
+							// Branch is pushed, open it directly
+							const branchUrl = forge.current.branch(branchDetail.name)?.url;
+							if (branchUrl) {
+								urlService.openExternalUrl(branchUrl);
+								return; // Close palette
+							}
+						} else {
+							chipToasts.info(`Branch "${currentBranchName}" has not been pushed yet`);
+							return;
+						}
+					}
+				}
+
+				// No selection or branch not found - show submenu with all pushed branches
+				// Fetch all stacks in the workspace (applied stacks only)
+				const stacks = await stackService.fetchStacks(projectId);
+
+				if (!stacks || stacks.length === 0) {
+					chipToasts.info('No stacks found in workspace');
+					return;
+				}
+
+				// Collect all branches from all stacks that have a remote tracking branch
+				const branchItems: Array<{
+					stackId: string;
+					branchName: string;
+					url: string;
+					stackName: string;
+				}> = [];
+
+				// For each stack, fetch its details to get branch information
+				for (const stack of stacks) {
+					if (!stack.id) continue;
+
+					try {
+						// Fetch the stack details which contains branchDetails
+						const stackDetails = await stackService.api.endpoints.stackDetails.fetch({
+							projectId,
+							stackId: stack.id
+						});
+
+						if (!stackDetails?.stackInfo?.branchDetails) continue;
+
+						// For each branch in the stack that has a remote tracking branch
+						for (const branchDetail of stackDetails.stackInfo.branchDetails) {
+							if (!branchDetail.remoteTrackingBranch) continue;
+
+							// Get the forge URL for this branch
+							const branchUrl = forge.current.branch(branchDetail.name)?.url;
+							if (!branchUrl) continue;
+
+							branchItems.push({
+								stackId: stack.id,
+								branchName: branchDetail.name,
+								url: branchUrl,
+								stackName: stack.heads[0]?.name || 'Unknown'
+							});
+						}
+					} catch (error) {
+						console.error(`Failed to fetch details for stack ${stack.id}:`, error);
+						// Continue with other stacks
+					}
+				}
+
+				if (branchItems.length === 0) {
+					chipToasts.info('No pushed branches found in workspace');
+					return;
+				}
+
+				// Return submenu items for each branch
+				return branchItems.map((item) => ({
+					id: `${item.stackId}-${item.branchName}`,
+					title: item.branchName,
+					description: item.stackName !== item.branchName ? `Stack: ${item.stackName}` : undefined,
+					keywords: [item.branchName, item.stackName],
+					action: () => {
+						urlService.openExternalUrl(item.url);
+					}
+				}));
+			} catch (error) {
+				console.error('Failed to fetch branches:', error);
+				chipToasts.error('Failed to fetch branches');
+			}
+		}
 	}
 ];

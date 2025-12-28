@@ -23,6 +23,19 @@ export type CommandAction = {
 };
 
 /**
+ * Command groups for organizing commands in the palette.
+ * Commands with a group will display as "Group: Command Title"
+ */
+export type CommandGroup =
+	| 'Project'
+	| 'Branch'
+	| 'Commit'
+	| 'Git'
+	| 'Settings'
+	| 'Navigation'
+	| 'Stack';
+
+/**
  * An item displayed in a submenu.
  * Can represent any selectable option (project, branch, commit, etc.)
  */
@@ -50,6 +63,8 @@ export type CommandActionResult = void | SubmenuItem[] | Promise<SubmenuItem[]>;
 export type Command = {
 	id: string;
 	title: string;
+	/** Optional group for organizing commands (e.g., "Project", "Branch"). Displays as "Group: Title" */
+	group?: CommandGroup;
 	description?: string;
 	action: (ctx: CommandAction) => CommandActionResult;
 	keywords?: string[];

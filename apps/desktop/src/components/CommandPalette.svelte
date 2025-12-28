@@ -311,7 +311,12 @@
 									onmouseenter={() => (highlightedIndex = idx)}
 								>
 									<div class="command-content">
-										<span class="command-title">{command.title}</span>
+										<span class="command-title">
+											{#if command.group}
+												<span class="command-group">{command.group}:</span>
+											{/if}
+											{command.title}
+										</span>
 										{#if command.description}
 											<span class="command-description">{command.description}</span>
 										{/if}
@@ -342,7 +347,12 @@
 									onmouseenter={() => (highlightedIndex = globalIdx)}
 								>
 									<div class="command-content">
-										<span class="command-title">{command.title}</span>
+										<span class="command-title">
+											{#if command.group}
+												<span class="command-group">{command.group}:</span>
+											{/if}
+											{command.title}
+										</span>
 										{#if command.description}
 											<span class="command-description">{command.description}</span>
 										{/if}
@@ -373,7 +383,12 @@
 									onmouseenter={() => (highlightedIndex = idx)}
 								>
 									<div class="command-content">
-										<span class="command-title">{item.title}</span>
+										<span class="command-title">
+											{#if viewMode === 'main' && (item as Command).group}
+												<span class="command-group">{(item as Command).group}:</span>
+											{/if}
+											{item.title}
+										</span>
 										{#if item.description}
 											<span class="command-description">{item.description}</span>
 										{/if}
@@ -526,6 +541,11 @@
 		color: var(--clr-text-1);
 		font-weight: 500;
 		font-size: 14px;
+	}
+
+	.command-group {
+		color: var(--clr-text-2);
+		margin-right: 4px;
 	}
 
 	.command-description {

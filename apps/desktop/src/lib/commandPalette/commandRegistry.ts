@@ -47,6 +47,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'project.switch',
 		title: 'Switch Project',
+		group: 'Project',
 		keywords: ['project', 'switch', 'change'],
 		action: async ({ backend }) => {
 			// Fetch projects from backend
@@ -71,6 +72,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'project.add-local',
 		title: 'Add Local Repository',
+		group: 'Project',
 		keywords: ['add', 'local', 'repository', 'project', 'new', 'open'],
 		action: async ({ projectsService, goto }) => {
 			const outcome = await projectsService.addProject();
@@ -84,6 +86,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'project.clone',
 		title: 'Clone Repository',
+		group: 'Project',
 		keywords: ['clone', 'repository', 'git', 'remote', 'github', 'gitlab', 'new'],
 		action: ({ goto }) => {
 			goto('/onboarding/clone');
@@ -92,6 +95,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'branch.create',
 		title: 'Create Branch',
+		group: 'Branch',
 		keywords: ['branch', 'create', 'new'],
 		shortcut: '⌘B',
 		action: ({ shortcutService }) => shortcutService.trigger('create-branch')
@@ -137,6 +141,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'commit.insert-above',
 		title: 'Insert Empty Commit Above',
+		group: 'Commit',
 		keywords: ['insert', 'empty', 'commit', 'above', 'blank'],
 		action: async (ctx) => {
 			const { backend, projectId, page, uiState } = ctx;
@@ -192,6 +197,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'commit.insert-below',
 		title: 'Insert Empty Commit Below',
+		group: 'Commit',
 		keywords: ['insert', 'empty', 'commit', 'below', 'blank'],
 		action: async (ctx) => {
 			const { backend, projectId, page, uiState } = ctx;
@@ -247,6 +253,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'commit.edit-message',
 		title: 'Edit Commit Message',
+		group: 'Commit',
 		keywords: ['edit', 'commit', 'message', 'rename', 'amend'],
 		action: (ctx) => {
 			const { projectId, uiState, page } = ctx;
@@ -292,6 +299,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'commit.edit',
 		title: 'Edit Commit',
+		group: 'Commit',
 		keywords: ['edit', 'commit', 'patch', 'files', 'changes', 'modify'],
 		action: async (ctx) => {
 			const { projectId, modeService, page } = ctx;
@@ -331,6 +339,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'project.settings',
 		title: 'Open Project Settings',
+		group: 'Settings',
 		keywords: ['project', 'settings', 'preferences', 'config', 'configuration'],
 		action: ({ shortcutService, projectId }) => {
 			if (!projectId) return;
@@ -340,6 +349,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'global.settings',
 		title: 'Open Global Settings',
+		group: 'Settings',
 		shortcut: '⌘,',
 		keywords: ['settings', 'preferences', 'global', 'general', 'config', 'configuration', 'app'],
 		action: ({ shortcutService }) => shortcutService.trigger('global-settings')
@@ -347,6 +357,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'branch.open-in-browser',
 		title: 'Open Branch in Browser',
+		group: 'Branch',
 		keywords: ['branch', 'open', 'browser', 'github', 'gitlab', 'remote', 'url'],
 		action: async (ctx) => {
 			const { projectId, stackService, forge, urlService, uiState, page } = ctx;
@@ -479,6 +490,7 @@ export const COMMANDS: Command[] = [
 	{
 		id: 'stack.collapse',
 		title: 'Collapse Active Stack',
+		group: 'Stack',
 		keywords: ['stack', 'collapse', 'fold', 'hide', 'minimize'],
 		action: ({ projectId, uiState, page }) => {
 			if (!projectId) return;

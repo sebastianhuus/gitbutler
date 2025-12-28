@@ -2,7 +2,7 @@ import Fuse from 'fuse.js';
 import type { Command, SubmenuItem } from '$lib/commandPalette/types';
 
 const fuseOptions = {
-	keys: ['title', 'keywords'],
+	keys: ['title', 'keywords', 'group'],
 	threshold: 0.4,
 	includeScore: true
 };

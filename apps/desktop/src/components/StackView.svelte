@@ -256,6 +256,8 @@
 		}
 		// Clear the lane selection (branch/commit)
 		selection.set(undefined);
+		// Also clear the workspace selection so command palette doesn't find stale selection
+		projectState.workspaceSelection.set({});
 	}
 
 	const startCommitVisible = $derived(uncommittedService.startCommitVisible(stableStackId));

@@ -6,6 +6,7 @@
 	import { searchCommands, searchSubmenuItems } from '$lib/commandPalette/search';
 	import { DEFAULT_FORGE_FACTORY } from '$lib/forge/forgeFactory.svelte';
 	import { MODE_SERVICE } from '$lib/mode/modeService';
+	import { PROJECTS_SERVICE } from '$lib/project/projectsService';
 	import { SHORTCUT_SERVICE } from '$lib/shortcuts/shortcutService';
 	import { STACK_SERVICE } from '$lib/stacks/stackService.svelte';
 	import { UI_STATE } from '$lib/state/uiState.svelte';
@@ -25,6 +26,7 @@
 	const forge = inject(DEFAULT_FORGE_FACTORY);
 	const urlService = inject(URL_SERVICE);
 	const stackService = inject(STACK_SERVICE);
+	const projectsService = inject(PROJECTS_SERVICE);
 
 	const projectId = $derived(page.params.projectId);
 	const isOpen = $derived(uiState.global.commandPaletteOpen.current);
@@ -116,7 +118,8 @@
 			modeService,
 			forge,
 			urlService,
-			stackService
+			stackService,
+			projectsService
 		});
 
 		// Track as recent command
@@ -182,7 +185,8 @@
 			modeService,
 			forge,
 			urlService,
-			stackService
+			stackService,
+			projectsService
 		});
 		close();
 	}

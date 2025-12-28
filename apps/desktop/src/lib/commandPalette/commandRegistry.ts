@@ -1,4 +1,6 @@
 import { editPatch } from '$lib/editMode/editPatchUtils';
+import { handleAddProjectOutcome } from '$lib/project/project';
+import { projectPath } from '$lib/routes/routes.svelte';
 import { persisted } from '@gitbutler/shared/persisted';
 import { chipToasts } from '@gitbutler/ui';
 import type { Command, CommandAction } from '$lib/commandPalette/types';
@@ -64,6 +66,19 @@ export const COMMANDS: Command[] = [
 					goto(`/${project.id}`);
 				}
 			}));
+		}
+	},
+	{
+		id: 'project.add-local',
+		title: 'Add Local Repository',
+		keywords: ['add', 'local', 'repository', 'project', 'new', 'open'],
+		action: async ({ projectsService, goto }) => {
+			const outcome = await projectsService.addProject();
+			if (!outcome) {
+				// User cancelled the file picker
+				return;
+			}
+			handleAddProjectOutcome(outcome, (project) => goto(projectPath(project.id)));
 		}
 	},
 	{

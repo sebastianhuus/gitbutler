@@ -469,6 +469,18 @@ pub(crate) fn integrate_upstream(
     let virtual_branches_state = VirtualBranchesHandle::new(ctx.project_data_dir());
     let default_target = virtual_branches_state.get_default_target()?;
 
+    // SAFETY: Block upstream integration in GitButler's own development repository
+    // to prevent app recompilation during merge conflicts
+    if default_target.remote_url.contains("gitbutlerapp/gitbutler")
+        || default_target.remote_url.contains("github.com/gitbutlerapp/gitbutler")
+    {
+        bail!(
+            "Upstream integration is blocked for the GitButler repository. \
+             This prevents the app from recompiling and restarting during merge conflicts. \
+             Please merge changes manually outside of the GitButler app."
+        );
+    }
+
     let mut deleted_branches = vec![];
 
     // Ensure resolutions match current statuses
@@ -656,6 +668,19 @@ pub(crate) fn resolve_upstream_integration(
 ) -> Result<git2::Oid> {
     let gix_repo = ctx.repo.get()?;
     let context = UpstreamIntegrationContext::open(ctx, None, permission, &gix_repo, review_map)?;
+
+    // SAFETY: Block upstream integration in GitButler's own development repository
+    // to prevent app recompilation during merge conflicts
+    if context.target.remote_url.contains("gitbutlerapp/gitbutler")
+        || context.target.remote_url.contains("github.com/gitbutlerapp/gitbutler")
+    {
+        bail!(
+            "Upstream integration is blocked for the GitButler repository. \
+             This prevents the app from recompiling and restarting during merge conflicts. \
+             Please merge changes manually outside of the GitButler app."
+        );
+    }
+
     let repo = &*ctx.git2_repo.get()?;
     let new_target_id = context.new_target;
     let old_target_id = context.target.sha;

@@ -2,6 +2,7 @@
 	import { CLIPBOARD_SERVICE } from '$lib/backend/clipboard';
 	import { BASE_BRANCH_SERVICE } from '$lib/baseBranch/baseBranchService.svelte';
 	import { DEFAULT_FORGE_FACTORY } from '$lib/forge/forgeFactory.svelte';
+	import { Command } from '@tauri-apps/plugin-shell';
 	import {
 		getBaseBranchResolution,
 		type BaseBranchResolutionApproach,
@@ -184,14 +185,46 @@
 			baseResolutionApproach || 'hardReset'
 		);
 
-		await integrateUpstream({
-			projectId,
-			resolutions: Array.from(results.values()),
-			baseBranchResolution: baseResolution
-		});
-		await baseBranchService.refreshBaseBranch(projectId);
-		integratingUpstream = 'completed';
-		modal?.close();
+		try {
+			await integrateUpstream({
+				projectId,
+				resolutions: Array.from(results.values()),
+				baseBranchResolution: baseResolution
+			});
+			await baseBranchService.refreshBaseBranch(projectId);
+			integratingUpstream = 'completed';
+			modal?.close();
+		} catch (error: unknown) {
+			integratingUpstream = 'inert';
+
+			// Check if this is the GitButler repo error
+			const errorMessage =
+				error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+
+			if (errorMessage.includes('Upstream integration is blocked for the GitButler repository')) {
+				// Show a prompt to open the normal GitButler app
+				const shouldOpen = await confirm(
+					'You are working on the GitButler repository itself.\n\n' +
+						'To merge changes, please use the production GitButler app instead of the development version.\n\n' +
+						'Would you like to open GitButler now?'
+				);
+
+				if (shouldOpen) {
+					// Use Tauri's shell plugin to open the GitButler app
+					try {
+						const cmd = Command.create('open', ['-a', 'GitButler']);
+						await cmd.execute();
+					} catch (openError) {
+						console.error('Failed to open GitButler:', openError);
+					}
+				}
+
+				modal?.close();
+			} else {
+				// Re-throw other errors to be handled by global error handler
+				throw error;
+			}
+		}
 	}
 
 	// async function fetchAppliedBranches() {

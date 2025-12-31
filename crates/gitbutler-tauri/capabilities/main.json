@@ -16,6 +16,7 @@
 		"log:default",
 		"process:default",
 		"shell:allow-open",
+		"shell:allow-execute",
 		"store:default",
 		"updater:default",
 		"http:allow-fetch",
@@ -30,6 +31,16 @@
 				},
 				{
 					"url": "http://localhost:*/**"
+				}
+			]
+		},
+		{
+			"identifier": "shell:allow-execute",
+			"allow": [
+				{
+					"name": "open",
+					"cmd": "open",
+					"args": ["-a", "GitButler"]
 				}
 			]
 		}

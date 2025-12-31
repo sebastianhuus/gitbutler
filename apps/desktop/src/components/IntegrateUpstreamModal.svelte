@@ -3,6 +3,7 @@
 	import { BASE_BRANCH_SERVICE } from '$lib/baseBranch/baseBranchService.svelte';
 	import { DEFAULT_FORGE_FACTORY } from '$lib/forge/forgeFactory.svelte';
 	import { Command } from '@tauri-apps/plugin-shell';
+	import { ask } from '@tauri-apps/plugin-dialog';
 	import {
 		getBaseBranchResolution,
 		type BaseBranchResolutionApproach,
@@ -203,10 +204,16 @@
 
 			if (errorMessage.includes('Upstream integration is blocked for the GitButler repository')) {
 				// Show a prompt to open the normal GitButler app
-				const shouldOpen = await confirm(
+				const shouldOpen = await ask(
 					'You are working on the GitButler repository itself.\n\n' +
 						'To merge changes, please use the production GitButler app instead of the development version.\n\n' +
-						'Would you like to open GitButler now?'
+						'Would you like to open GitButler now?',
+					{
+						title: 'Open GitButler App',
+						kind: 'warning',
+						okLabel: 'Open GitButler',
+						cancelLabel: 'Cancel'
+					}
 				);
 
 				if (shouldOpen) {

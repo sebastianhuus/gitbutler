@@ -11,6 +11,7 @@
 		"core:window:allow-set-title",
 		"core:window:default",
 		"dialog:allow-open",
+		"dialog:allow-ask",
 		"fs:allow-read-file",
 		"fs:allow-cache-read-recursive",
 		"log:default",

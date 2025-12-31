@@ -116,8 +116,11 @@ export const COMMANDS: Command[] = [
 		action: async ({ backend, projectId, shortcutService }) => {
 			if (!projectId) return;
 
-			// Check if there are upstream commits before opening the modal
 			try {
+				// First, fetch from remotes to ensure we have latest data
+				await backend.invoke('fetch_from_remotes', { projectId });
+
+				// Then check if there are upstream commits
 				const baseBranch = (await backend.invoke('get_base_branch_data', { projectId })) as
 					| { behind?: number }
 					| undefined;
@@ -132,7 +135,7 @@ export const COMMANDS: Command[] = [
 				// There are upstream commits - open the modal
 				shortcutService.trigger('integrate-upstream');
 			} catch (error) {
-				console.error('Failed to check upstream status:', error);
+				console.error('Failed to update workspace:', error);
 				// Still try to open the modal in case of error
 				shortcutService.trigger('integrate-upstream');
 			}

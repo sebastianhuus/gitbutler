@@ -8,6 +8,7 @@
 	import { MODE_SERVICE } from '$lib/mode/modeService';
 	import { PROJECTS_SERVICE } from '$lib/project/projectsService';
 	import { UNCOMMITTED_SERVICE } from '$lib/selection/uncommittedService.svelte';
+	import { SETTINGS } from '$lib/settings/userSettings';
 	import { SHORTCUT_SERVICE } from '$lib/shortcuts/shortcutService';
 	import { STACK_SERVICE } from '$lib/stacks/stackService.svelte';
 	import { UI_STATE } from '$lib/state/uiState.svelte';
@@ -29,6 +30,7 @@
 	const stackService = inject(STACK_SERVICE);
 	const projectsService = inject(PROJECTS_SERVICE);
 	const uncommittedService = inject(UNCOMMITTED_SERVICE);
+	const userSettings = inject(SETTINGS);
 
 	const projectId = $derived(page.params.projectId);
 	const isOpen = $derived(uiState.global.commandPaletteOpen.current);
@@ -134,7 +136,8 @@
 			urlService,
 			stackService,
 			projectsService,
-			uncommittedService
+			uncommittedService,
+			userSettings
 		});
 
 		// Track as recent command
@@ -202,7 +205,8 @@
 			urlService,
 			stackService,
 			projectsService,
-			uncommittedService
+			uncommittedService,
+			userSettings
 		});
 		close();
 	}
@@ -560,8 +564,8 @@
 	}
 
 	.command-group {
-		color: var(--clr-text-2);
 		margin-right: 4px;
+		color: var(--clr-text-2);
 	}
 
 	.command-description {

@@ -3,11 +3,13 @@ import type { DefaultForgeFactory } from '$lib/forge/forgeFactory.svelte';
 import type { ModeService } from '$lib/mode/modeService';
 import type { ProjectsService } from '$lib/project/projectsService';
 import type { UncommittedService } from '$lib/selection/uncommittedService.svelte';
+import type { Settings } from '$lib/settings/userSettings';
 import type { ShortcutService } from '$lib/shortcuts/shortcutService';
 import type { StackService } from '$lib/stacks/stackService.svelte';
 import type { UiState } from '$lib/state/uiState.svelte';
 import type { UrlService } from '$lib/utils/url';
 import type { Page } from '@sveltejs/kit';
+import type { Writable } from 'svelte/store';
 
 export type CommandAction = {
 	backend: IBackend;
@@ -22,6 +24,7 @@ export type CommandAction = {
 	stackService: StackService;
 	projectsService: ProjectsService;
 	uncommittedService: UncommittedService;
+	userSettings: Writable<Settings>;
 };
 
 /**

@@ -1,8 +1,10 @@
 import { editPatch } from '$lib/editMode/editPatchUtils';
-import { handleAddProjectOutcome } from '$lib/project/project';
+import { handleAddProjectOutcome, vscodePath } from '$lib/project/project';
 import { projectPath } from '$lib/routes/routes.svelte';
+import { getEditorUri } from '$lib/utils/url';
 import { persisted } from '@gitbutler/shared/persisted';
 import { chipToasts } from '@gitbutler/ui';
+import { get } from 'svelte/store';
 import type { Command, CommandAction } from '$lib/commandPalette/types';
 
 /**
@@ -368,7 +370,7 @@ export const COMMANDS: Command[] = [
 
 			try {
 				// Check if there's a currently selected commit
-				const selection = getSelectedCommit(ctx);
+				getSelectedCommit(ctx);
 				const projectState = uiState.project(projectId);
 
 				// Get the current branch name and stackId from selection (if any)
@@ -646,6 +648,30 @@ export const COMMANDS: Command[] = [
 			});
 
 			chipToasts.success('Starting commit');
+		}
+	},
+	{
+		id: 'project.open-in-editor',
+		title: 'Open in Editor',
+		group: 'Project',
+		keywords: ['open', 'editor', 'vscode', 'code', 'ide', 'zed', 'cursor', 'windsurf'],
+		action: async ({ projectId, projectsService, urlService, userSettings }) => {
+			if (!projectId) return;
+
+			const project = await projectsService.fetchProject(projectId);
+			if (!project) {
+				chipToasts.error(`Project not found: ${projectId}`);
+				return;
+			}
+
+			const settings = get(userSettings);
+			urlService.openExternalUrl(
+				getEditorUri({
+					schemeId: settings.defaultCodeEditor.schemeIdentifer,
+					path: [vscodePath(project.path)],
+					searchParams: { windowId: '_blank' }
+				})
+			);
 		}
 	}
 ];

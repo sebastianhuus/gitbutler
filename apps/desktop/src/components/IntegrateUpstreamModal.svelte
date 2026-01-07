@@ -2,8 +2,6 @@
 	import { CLIPBOARD_SERVICE } from '$lib/backend/clipboard';
 	import { BASE_BRANCH_SERVICE } from '$lib/baseBranch/baseBranchService.svelte';
 	import { DEFAULT_FORGE_FACTORY } from '$lib/forge/forgeFactory.svelte';
-	import { Command } from '@tauri-apps/plugin-shell';
-	import { ask } from '@tauri-apps/plugin-dialog';
 	import {
 		getBaseBranchResolution,
 		type BaseBranchResolutionApproach,
@@ -37,6 +35,8 @@
 		type BranchShouldBeDeletedMap,
 		TestId
 	} from '@gitbutler/ui';
+	import { ask } from '@tauri-apps/plugin-dialog';
+	import { Command } from '@tauri-apps/plugin-shell';
 	import { tick } from 'svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import type { PullRequest } from '$lib/forge/interface/types';

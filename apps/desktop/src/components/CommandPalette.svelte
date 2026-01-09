@@ -3,7 +3,11 @@
 	import { page } from '$app/state';
 	import { BACKEND } from '$lib/backend';
 	import { COMMANDS } from '$lib/commandPalette/commandRegistry';
-	import { searchCommands, searchSubmenuItems } from '$lib/commandPalette/search';
+	import {
+		searchCommands,
+		searchSubmenuItems,
+		filterCommandsPreservingOrder
+	} from '$lib/commandPalette/search';
 	import { DEFAULT_FORGE_FACTORY } from '$lib/forge/forgeFactory.svelte';
 	import { MODE_SERVICE } from '$lib/mode/modeService';
 	import { PROJECTS_SERVICE } from '$lib/project/projectsService';
@@ -64,9 +68,9 @@
 			.map((id) => COMMANDS.find((cmd) => cmd.id === id))
 			.filter((cmd): cmd is Command => cmd !== undefined);
 
-		// If searching, filter recent commands by search query
+		// If searching, filter recent commands by search query while preserving recency order
 		if (searchQuery.trim()) {
-			return searchCommands(recentCommands, searchQuery);
+			return filterCommandsPreservingOrder(recentCommands, searchQuery);
 		}
 		return recentCommands;
 	});

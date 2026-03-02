@@ -673,5 +673,20 @@ export const COMMANDS: Command[] = [
 				})
 			);
 		}
+	},
+	{
+		id: 'project.show-in-finder',
+		title: 'Show in Finder',
+		group: 'Project',
+		keywords: ['finder', 'explorer', 'reveal', 'folder', 'open', 'files'],
+		action: async ({ backend, projectId, projectsService }) => {
+			if (!projectId) return;
+			const project = await projectsService.fetchProject(projectId);
+			if (!project) {
+				chipToasts.error(`Project not found: ${projectId}`);
+				return;
+			}
+			await backend.invoke('show_in_finder', { path: project.path });
+		}
 	}
 ];

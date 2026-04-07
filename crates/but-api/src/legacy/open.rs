@@ -118,6 +118,7 @@ pub fn open_url(url: String) -> Result<()> {
 /// - `alacritty-mac` - Alacritty
 /// - `wezterm-mac` - WezTerm
 /// - `hyper` - Hyper
+/// - `kitty` - Kitty
 ///
 /// **Windows:**
 /// - `wt` - Windows Terminal
@@ -245,6 +246,7 @@ pub fn open_in_terminal(terminal_id: String, path: String) -> Result<()> {
                     .arg(&path);
                 run_terminal_command(cmd, "Alacritty", &path)?;
             }
+            "kitty" => open_with_path("kitty", Some("Kitty"))?,
             // WezTerm does not support `open -a WezTerm <path>`. Their docs state you have to use their CLI.
             // https://wezterm.org/config/launch.html#specifying-the-current-working-directory
             "wezterm-mac" => {

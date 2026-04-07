@@ -78,6 +78,7 @@
 		{ identifier: "alacritty-mac", displayName: "Alacritty", platform: "macos" },
 		{ identifier: "wezterm-mac", displayName: "WezTerm", platform: "macos" },
 		{ identifier: "hyper", displayName: "Hyper", platform: "macos" },
+		{ identifier: "kitty", displayName: "Kitty", platform: "macos" },
 		// Windows
 		{ identifier: "wt", displayName: "Windows Terminal", platform: "windows" },
 		{ identifier: "powershell", displayName: "PowerShell", platform: "windows" },

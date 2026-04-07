@@ -92,6 +92,7 @@
 		{ identifier: "warp", displayName: "Warp", platform: "linux" },
 		{ identifier: "hyper", displayName: "Hyper", platform: "linux" },
 		{ identifier: "wezterm", displayName: "WezTerm", platform: "linux" },
+		{ identifier: "kitty", displayName: "Kitty", platform: "linux" },
 	];
 
 	const terminalOptions = allTerminalOptions.filter((t) => t.platform === platformName);

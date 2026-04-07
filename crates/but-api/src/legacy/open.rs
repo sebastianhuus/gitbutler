@@ -134,6 +134,7 @@ pub fn open_url(url: String) -> Result<()> {
 /// - `warp` - Warp
 /// - `hyper` - Hyper
 /// - `wezterm` - WezTerm
+/// - `kitty` - Kitty
 ///
 /// # Errors
 /// Returns an error if:
@@ -281,7 +282,8 @@ pub fn open_in_terminal(terminal_id: String, path: String) -> Result<()> {
             // Terminals that inherit parent process CWD (no explicit flags needed).
             // Note: `binary` is used instead of the terminal ID because some terminals
             // have a different binary name (e.g. "warp" launches "warp-terminal").
-            "gnome-terminal" | "konsole" | "xfce4-terminal" | "alacritty" | "ghostty" | "warp" => {
+            "gnome-terminal" | "konsole" | "xfce4-terminal" | "alacritty" | "ghostty" | "warp"
+            | "kitty" => {
                 let mut cmd = Command::new(binary);
                 cmd.current_dir(&path);
                 spawn_and_reap(cmd, binary, &path)?;
